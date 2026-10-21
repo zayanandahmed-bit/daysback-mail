@@ -35,7 +35,7 @@
 <div class="bar"></div>
 <div class="wrap">
   <h1>DaysBack <span>Mail</span></h1>
-  <p class="sub">Send any email in the DaysBack template, from contact@daysback.si.</p>
+  <p class="sub">Send any email in the DaysBack template, from your DaysBack mailbox.</p>
 
   <div class="card" id="login">
     <label for="pass">Passcode</label>
@@ -47,8 +47,12 @@
   <div class="card hide" id="tool">
     <form id="form">
       <div class="row">
-        <div><label for="to">To</label><input id="to" type="email" list="people" required autocomplete="off" placeholder="Type a name or email…"><datalist id="people"></datalist></div>
+        <div><label for="box">Send from</label><select id="box" required></select></div>
         <div><label for="from">Sign as</label><select id="from" required><option value="Zayan">Zayan</option><option value="Mazher">Mazher</option></select></div>
+      </div>
+
+      <div class="row">
+        <div><label for="to">To</label><input id="to" type="email" list="people" required autocomplete="off" placeholder="Type a name or email…"><datalist id="people"></datalist></div>
       </div>
 
       <label for="tpl">Start from a template</label>
@@ -60,7 +64,7 @@
       <label for="message">Message</label>
       <textarea id="message" required></textarea>
       <p class="hint">Suggestions come from your website leads, everyone you've emailed with this tool, and any contacts you import. <a href="#" id="importLink">Import contacts</a> (CSV or vCard exported from Hostinger Mail → Contacts)<input id="importFile" type="file" accept=".csv,.vcf,text/csv,text/vcard" class="hide"></p>
-      <p class="hint">Sent from contact@daysback.si with the gradient header and DaysBack footer. Mazher and contact@ are on BCC so everyone sees what went out. Replies come back to contact@daysback.si.</p>
+      <p class="hint">Sent with the gradient header and your DaysBack signature. The team and the sending mailbox get a copy (BCC), and replies come back to the mailbox you sent from.</p>
 
       <button class="btn" id="send">Send email</button>
       <button type="button" class="btn ghost" id="lock">Lock</button>
@@ -137,7 +141,14 @@ $('enter').onclick = () => { pass = $('pass').value; $('loginErr').classList.add
 $('pass').onkeydown = (e) => { if (e.key === 'Enter') $('enter').click(); };
 $('lock').onclick = () => { pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {} location.reload(); };
 let people = {};
+function loadBoxes(list) {
+  const keep = $('box').value || (() => { try { return localStorage.getItem('dbm-box'); } catch (e) { return ''; } })();
+  $('box').innerHTML = (list || [{ email: 'contact@daysback.si', ready: true }]).map((m) =>
+    `<option value="${m.email}"${m.ready ? '' : ' disabled'}>${m.email}${m.ready ? '' : ' (not connected yet)'}</option>`).join('');
+  if (keep && [...$('box').options].some((o) => o.value === keep && !o.disabled)) $('box').value = keep;
+}
 function loadPeople(out) {
+  if (out.mailboxes) loadBoxes(out.mailboxes);
   people = {};
   (out.contacts || []).forEach((c) => { people[c.email.toLowerCase()] = c.name || ''; });
   (out.enquiries || []).forEach((c) => { people[c.email.toLowerCase()] = c.name || people[c.email.toLowerCase()] || ''; });
@@ -190,8 +201,8 @@ $('form').onsubmit = async (e) => {
   e.preventDefault();
   const btn = $('send'), msg = $('msg');
   btn.disabled = true; btn.textContent = 'Sending…'; msg.className = 'note hide';
-  try { localStorage.setItem('dbm-from', $('from').value); } catch (e2) {}
-  const r = await call({ action: 'send', to: $('to').value, subject: $('subject').value, message: $('message').value, from: $('from').value });
+  try { localStorage.setItem('dbm-from', $('from').value); localStorage.setItem('dbm-box', $('box').value); } catch (e2) {}
+  const r = await call({ action: 'send', to: $('to').value, subject: $('subject').value, message: $('message').value, from: $('from').value, box: $('box').value });
   btn.disabled = false; btn.textContent = 'Send email';
   if (r.ok && r.out.ok) {
     msg.textContent = 'Sent to ' + $('to').value + '. The team has been BCC\'d.'; msg.className = 'note ok';

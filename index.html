@@ -26,6 +26,13 @@
   .note { margin:14px 0 0; font-weight:600; } .ok { color:var(--ok); } .err { color:var(--err); }
   .hint { color:var(--muted); font-size:12px; margin-top:6px; }
   a { color:var(--accent); }
+  #loading { text-align:center; padding:40px 24px; }
+  .spin { width:40px; height:40px; margin:0 auto 16px; border-radius:50%; border:4px solid var(--bg2); border-top-color:var(--accent); border-right-color:var(--pink); animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .load-title { font-weight:700; margin:0 0 14px; }
+  .steps { list-style:none; padding:0; margin:0 auto; max-width:360px; text-align:left; color:var(--muted); font-size:14px; }
+  .steps li { padding:5px 0; } .steps li.done { color:var(--ok); } .steps li.fail { color:var(--err); }
+  .steps li::before { content:'○  '; } .steps li.done::before { content:'✓  '; } .steps li.fail::before { content:'!  '; }
   .tiny { text-align:center; color:var(--muted); font-size:12px; margin-top:18px; }
   .hide { display:none; }
   @media (max-width:560px){ .row{flex-direction:column;gap:0} }
@@ -42,6 +49,12 @@
     <input id="pass" type="password" autocomplete="current-password" placeholder="Enter passcode">
     <button class="btn" id="enter">Open</button>
     <p class="note err hide" id="loginErr"></p>
+  </div>
+
+  <div class="card hide" id="loading">
+    <div class="spin"></div>
+    <p class="load-title">Getting everything ready…</p>
+    <ul class="steps" id="steps"></ul>
   </div>
 
   <div class="card hide" id="tool">
@@ -63,7 +76,7 @@
 
       <label for="message">Message</label>
       <textarea id="message" required></textarea>
-      <p class="hint">Suggestions come from your website leads, everyone you've emailed with this tool, and any contacts you import. <a href="#" id="importLink">Import contacts</a> (CSV or vCard exported from Hostinger Mail → Contacts)<input id="importFile" type="file" accept=".csv,.vcf,text/csv,text/vcard" class="hide"></p>
+      <p class="hint">Suggestions come from your three mailboxes (refreshed every time you open this page), website leads, and any contacts you import. <a href="#" id="importLink">Import contacts</a> (CSV or vCard exported from Hostinger Mail → Contacts)<input id="importFile" type="file" accept=".csv,.vcf,text/csv,text/vcard" class="hide"></p>
       <p class="hint">Sent with the gradient header and your DaysBack signature. The team and the sending mailbox get a copy (BCC), and replies come back to the mailbox you sent from.</p>
 
       <button class="btn" id="send">Send email</button>
@@ -122,16 +135,37 @@ async function call(payload) {
   return { ok: res.ok, status: res.status, out };
 }
 
+function showLogin(err) {
+  pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {}
+  $('loginErr').textContent = err || 'Something went wrong.'; $('loginErr').classList.remove('hide');
+  $('login').classList.remove('hide'); $('loading').classList.add('hide'); $('tool').classList.add('hide');
+}
+function step(id, text, cls) {
+  let li = document.getElementById('st-' + id);
+  if (!li) { li = document.createElement('li'); li.id = 'st-' + id; $('steps').appendChild(li); }
+  li.textContent = text; li.className = cls || '';
+}
+
 async function openTool() {
-  const r = await call({ action: 'list' });
-  if (!r.ok) {
-    pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {}
-    $('loginErr').textContent = r.out.error || 'Something went wrong.'; $('loginErr').classList.remove('hide');
-    $('login').classList.remove('hide'); $('tool').classList.add('hide');
-    return;
-  }
+  // Check the passcode first (fast), then show the loading phase while every
+  // mailbox is scanned for contacts.
+  const check = await call({ action: 'list' });
+  if (!check.ok) return showLogin(check.out.error);
   try { sessionStorage.setItem('dbm-pass', pass); } catch (e) {}
-  $('login').classList.add('hide'); $('tool').classList.remove('hide');
+  $('login').classList.add('hide'); $('loading').classList.remove('hide'); $('steps').innerHTML = '';
+  const boxes = (check.out.mailboxes || []).filter((m) => m.ready);
+  boxes.forEach((m) => step(m.email, 'Reading ' + m.email + '…'));
+  step('leads', (check.out.enquiries || []).length + ' website leads loaded', 'done');
+  const sync = await call({ action: 'sync' });
+  (sync.out.results || []).forEach((x) => {
+    if (!boxes.some((m) => m.email === x.box)) return;
+    step(x.box, x.ok ? x.box + ': ' + x.count + ' contacts' : x.box + ': couldn\'t read', x.ok ? 'done' : 'fail');
+  });
+  if (!sync.ok) boxes.forEach((m) => step(m.email, m.email + ': couldn\'t read', 'fail'));
+  const r = await call({ action: 'list' });
+  if (!r.ok) return showLogin(r.out.error);
+  await new Promise((res) => setTimeout(res, 500));
+  $('loading').classList.add('hide'); $('tool').classList.remove('hide');
   loadPeople(r.out);
   try { const f = localStorage.getItem('dbm-from'); if (f) $('from').value = f; } catch (e) {}
   fillTemplates(); applyTemplate('blank');

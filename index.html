@@ -25,6 +25,7 @@
   .ghost { background:transparent; color:var(--muted); font-weight:600; padding:13px 8px; }
   .note { margin:14px 0 0; font-weight:600; } .ok { color:var(--ok); } .err { color:var(--err); }
   .hint { color:var(--muted); font-size:12px; margin-top:6px; }
+  a { color:var(--accent); }
   .tiny { text-align:center; color:var(--muted); font-size:12px; margin-top:18px; }
   .hide { display:none; }
   @media (max-width:560px){ .row{flex-direction:column;gap:0} }
@@ -45,12 +46,9 @@
 
   <div class="card hide" id="tool">
     <form id="form">
-      <label for="lead">Reply to a recent website lead (optional)</label>
-      <select id="lead"><option value="">Choose a lead…</option></select>
-
       <div class="row">
-        <div><label for="to">To</label><input id="to" type="email" required placeholder="name@company.com"></div>
-        <div><label for="from">Your name (signs the email)</label><input id="from" maxlength="60" required placeholder="e.g. Zayan"></div>
+        <div><label for="to">To</label><input id="to" type="email" list="people" required autocomplete="off" placeholder="Type a name or email…"><datalist id="people"></datalist></div>
+        <div><label for="from">Sign as</label><select id="from" required><option value="Zayan">Zayan</option><option value="Mazher">Mazher</option></select></div>
       </div>
 
       <label for="tpl">Start from a template</label>
@@ -61,6 +59,7 @@
 
       <label for="message">Message</label>
       <textarea id="message" required></textarea>
+      <p class="hint">Suggestions come from your website leads, everyone you've emailed with this tool, and any contacts you import. <a href="#" id="importLink">Import contacts</a> (CSV or vCard exported from Hostinger Mail → Contacts)<input id="importFile" type="file" accept=".csv,.vcf,text/csv,text/vcard" class="hide"></p>
       <p class="hint">Sent from contact@daysback.si with the gradient header and DaysBack footer. Mazher and contact@ are on BCC so everyone sees what went out. Replies come back to contact@daysback.si.</p>
 
       <button class="btn" id="send">Send email</button>
@@ -103,6 +102,7 @@ const TEMPLATES = {
 
 const firstName = () => (($('to').dataset.name || '').split(' ')[0]) || 'there';
 function applyTemplate(key) {
+  touched = false;
   const t = TEMPLATES[key];
   $('subject').value = t.subject;
   $('message').value = t.body.replace(/\{first\}/g, firstName());
@@ -128,23 +128,63 @@ async function openTool() {
   }
   try { sessionStorage.setItem('dbm-pass', pass); } catch (e) {}
   $('login').classList.add('hide'); $('tool').classList.remove('hide');
-  const list = r.out.enquiries || [];
-  $('lead').innerHTML = '<option value="">Choose a lead…</option>' + list.map((e, i) =>
-    `<option value="${i}">${e.name.replace(/</g, '')} (${e.email.replace(/</g, '')})${e.company ? ' · ' + e.company.replace(/</g, '') : ''}</option>`).join('');
-  $('lead').onchange = () => {
-    const e = list[$('lead').value]; if (!e) return;
-    $('to').value = e.email; $('to').dataset.name = e.name;
-    applyTemplate($('tpl').value === 'blank' ? 'first' : $('tpl').value);
-    if ($('tpl').value === 'blank') $('tpl').value = 'first';
-  };
-  try { $('from').value = localStorage.getItem('dbm-from') || ''; } catch (e) {}
+  loadPeople(r.out);
+  try { const f = localStorage.getItem('dbm-from'); if (f) $('from').value = f; } catch (e) {}
   fillTemplates(); applyTemplate('blank');
 }
 
 $('enter').onclick = () => { pass = $('pass').value; $('loginErr').classList.add('hide'); openTool(); };
 $('pass').onkeydown = (e) => { if (e.key === 'Enter') $('enter').click(); };
 $('lock').onclick = () => { pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {} location.reload(); };
-$('to').addEventListener('input', () => { if (!$('lead').value) $('to').dataset.name = ''; });
+let people = {};
+function loadPeople(out) {
+  people = {};
+  (out.contacts || []).forEach((c) => { people[c.email.toLowerCase()] = c.name || ''; });
+  (out.enquiries || []).forEach((c) => { people[c.email.toLowerCase()] = c.name || people[c.email.toLowerCase()] || ''; });
+  $('people').innerHTML = Object.entries(people).sort((a, b) => (a[1] || a[0]).localeCompare(b[1] || b[0]))
+    .map(([em, nm]) => `<option value="${em.replace(/"/g, '')}" label="${nm.replace(/"/g, '').replace(/</g, '')}"></option>`).join('');
+}
+// Picking (or typing) a known address puts their first name in the greeting,
+// as long as you haven't started editing the message yourself.
+let touched = false;
+$('message').addEventListener('input', () => { touched = true; });
+$('to').addEventListener('input', () => {
+  const nm = people[$('to').value.trim().toLowerCase()] || '';
+  if (nm === ($('to').dataset.name || '')) return;
+  $('to').dataset.name = nm;
+  if (nm && !touched) { if ($('tpl').value === 'blank') $('tpl').value = 'first'; applyTemplate($('tpl').value); }
+});
+
+// Contacts import: vCard (FN + EMAIL) or CSV (any columns, finds the emails).
+function parseContacts(text, name) {
+  const out = [];
+  if (/\.vcf$/i.test(name) || /BEGIN:VCARD/i.test(text)) {
+    text.split(/BEGIN:VCARD/i).slice(1).forEach((card) => {
+      const fn = (card.match(/^FN[^:]*:(.+)$/im) || [])[1] || '';
+      [...card.matchAll(/^EMAIL[^:]*:(.+)$/gim)].forEach((m) => out.push({ email: m[1].trim(), name: fn.trim() }));
+    });
+    return out;
+  }
+  text.split(/\r?\n/).forEach((line) => {
+    const cells = line.split(/[,;\t]/).map((c) => c.replace(/^"|"$/g, '').trim());
+    const email = cells.find((c) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c));
+    if (!email) return;
+    const nm = cells.find((c) => c && c !== email && !/@/.test(c) && /[a-z]/i.test(c) && !/^\+?[\d\s()-]+$/.test(c)) || '';
+    out.push({ email, name: nm });
+  });
+  return out;
+}
+$('importLink').onclick = (e) => { e.preventDefault(); $('importFile').click(); };
+$('importFile').onchange = async () => {
+  const f = $('importFile').files[0]; if (!f) return;
+  const msg = $('msg'); msg.className = 'note hide';
+  const contacts = parseContacts(await f.text(), f.name);
+  const r = await call({ action: 'import', contacts });
+  msg.textContent = r.ok ? 'Imported ' + r.out.count + ' contacts.' : (r.out.error || 'Import failed.');
+  msg.className = 'note ' + (r.ok ? 'ok' : 'err');
+  $('importFile').value = '';
+  if (r.ok) { const l = await call({ action: 'list' }); if (l.ok) loadPeople(l.out); }
+};
 
 $('form').onsubmit = async (e) => {
   e.preventDefault();
@@ -155,7 +195,8 @@ $('form').onsubmit = async (e) => {
   btn.disabled = false; btn.textContent = 'Send email';
   if (r.ok && r.out.ok) {
     msg.textContent = 'Sent to ' + $('to').value + '. The team has been BCC\'d.'; msg.className = 'note ok';
-    $('to').value = ''; $('to').dataset.name = ''; $('lead').value = ''; $('tpl').value = 'blank'; applyTemplate('blank');
+    $('to').value = ''; $('to').dataset.name = ''; $('tpl').value = 'blank'; applyTemplate('blank');
+    call({ action: 'list' }).then((l) => { if (l.ok) loadPeople(l.out); });
   } else { msg.textContent = r.out.error || 'Could not send.'; msg.className = 'note err'; }
 };
 

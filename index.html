@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>DaysBack Mail</title>
+<style>
+  :root { --bg:#fdfcff; --bg2:#f4f2ff; --fg:#17123a; --muted:#5f5b7e; --accent:#6c3cff; --pink:#e0307e; --line:#e3dff7; --ok:#00997f; --err:#d81b60; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; }
+  .bar { height:6px; background:linear-gradient(90deg,#6c3cff,#e0307e 55%,#ff6a1a); }
+  .wrap { max-width:760px; margin:0 auto; padding:28px 16px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; letter-spacing:.3px; }
+  h1 span { background:linear-gradient(90deg,#6c3cff,#e0307e); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub { color:var(--muted); margin:0 0 22px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:24px; box-shadow:0 10px 40px rgba(108,60,255,.08); }
+  label { display:block; font-weight:600; font-size:13px; margin:14px 0 6px; }
+  input, textarea, select { width:100%; border:1px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 14px; font:inherit; color:var(--fg); }
+  input:focus, textarea:focus, select:focus { outline:none; border-color:var(--accent); background:#fff; }
+  textarea { min-height:300px; resize:vertical; line-height:1.55; }
+  .row { display:flex; gap:12px; } .row > * { flex:1; }
+  .btn { margin-top:18px; border:0; cursor:pointer; color:#fff; font-weight:700; font-size:15px; padding:13px 26px; border-radius:999px; background:linear-gradient(90deg,#6c3cff,#e0307e); }
+  .btn:disabled { opacity:.6; cursor:default; }
+  .ghost { background:transparent; color:var(--muted); font-weight:600; padding:13px 8px; }
+  .note { margin:14px 0 0; font-weight:600; } .ok { color:var(--ok); } .err { color:var(--err); }
+  .hint { color:var(--muted); font-size:12px; margin-top:6px; }
+  .tiny { text-align:center; color:var(--muted); font-size:12px; margin-top:18px; }
+  .hide { display:none; }
+  @media (max-width:560px){ .row{flex-direction:column;gap:0} }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<div class="wrap">
+  <h1>DaysBack <span>Mail</span></h1>
+  <p class="sub">Send any email in the DaysBack template, from contact@daysback.si.</p>
+
+  <div class="card" id="login">
+    <label for="pass">Passcode</label>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="Enter passcode">
+    <button class="btn" id="enter">Open</button>
+    <p class="note err hide" id="loginErr"></p>
+  </div>
+
+  <div class="card hide" id="tool">
+    <form id="form">
+      <label for="lead">Reply to a recent website lead (optional)</label>
+      <select id="lead"><option value="">Choose a lead…</option></select>
+
+      <div class="row">
+        <div><label for="to">To</label><input id="to" type="email" required placeholder="name@company.com"></div>
+        <div><label for="from">Your name (signs the email)</label><input id="from" maxlength="60" required placeholder="e.g. Zayan"></div>
+      </div>
+
+      <label for="tpl">Start from a template</label>
+      <select id="tpl"></select>
+
+      <label for="subject">Subject</label>
+      <input id="subject" maxlength="150" required>
+
+      <label for="message">Message</label>
+      <textarea id="message" required></textarea>
+      <p class="hint">Sent from contact@daysback.si with the gradient header and DaysBack footer. Mazher and contact@ are on BCC so everyone sees what went out. Replies come back to contact@daysback.si.</p>
+
+      <button class="btn" id="send">Send email</button>
+      <button type="button" class="btn ghost" id="lock">Lock</button>
+      <p class="note hide" id="msg"></p>
+    </form>
+  </div>
+  <p class="tiny">Team use only.</p>
+</div>
+
+<script>
+const API = 'https://ajevxwdgmpaakjkffvmf.supabase.co/functions/v1/daysback-compose';
+const $ = (id) => document.getElementById(id);
+let pass = '';
+try { pass = sessionStorage.getItem('dbm-pass') || ''; } catch (e) {}
+
+const TEMPLATES = {
+  blank: { label: 'Blank', subject: '', body: 'Hi {first},\n\n' },
+  first: {
+    label: 'First reply to an enquiry', subject: 'Re: Your enquiry | DaysBack',
+    body: "Hi {first},\n\nThanks for getting in touch with DaysBack.\n\n[Answer / what we can do for them]\n\nThe quickest next step is a free 27-minute strategy call, where we map where your business is losing time and money and what we'd build to fix it. Here are a few times that work for us:\n\n- [Day, time]\n- [Day, time]\n- [Day, time]\n\nReply with whichever suits you and we'll send the invite."
+  },
+  followup: {
+    label: 'Follow-up (no reply yet)', subject: 'Following up | DaysBack',
+    body: "Hi {first},\n\nJust checking in on my last message. I know things get busy.\n\nIf it helps, we can keep it simple: a free 27-minute call where we look at where your business is losing time and money, with no obligation and no lock-in.\n\nWould any of these work?\n\n- [Day, time]\n- [Day, time]\n\nIf now isn't the right time, just let me know and I'll leave you be."
+  },
+  booked: {
+    label: 'Call confirmed', subject: 'Your strategy call is confirmed | DaysBack',
+    body: "Hi {first},\n\nYour free 27-minute strategy call is confirmed for [day, date, time, timezone].\n\nJoin here: [meeting link]\n\nTo make the most of it, it helps to think about:\n- Which tasks eat the most hours each week\n- Where leads or customers slip through the cracks\n- The tools you already use\n\nSee you then."
+  },
+  proposal: {
+    label: 'Proposal / quote sent', subject: 'Your DaysBack proposal',
+    body: "Hi {first},\n\nThanks for your time on our call. As promised, here is what we'd build for you:\n\n[What we'll build, in plain English]\n\nTimeline: live in [X] working days\nInvestment: [price]\nNo lock-in contracts, and your data stays yours.\n\nIf you're happy to go ahead, just reply and we'll get started. Any questions, ask away."
+  },
+  thanks: {
+    label: 'Thank you / next steps', subject: 'Thank you | DaysBack',
+    body: "Hi {first},\n\nThank you, we really appreciate it.\n\nHere is what happens next:\n\n1. [Step one]\n2. [Step two]\n3. [Step three]\n\nI'll keep you updated along the way."
+  },
+};
+
+const firstName = () => (($('to').dataset.name || '').split(' ')[0]) || 'there';
+function applyTemplate(key) {
+  const t = TEMPLATES[key];
+  $('subject').value = t.subject;
+  $('message').value = t.body.replace(/\{first\}/g, firstName());
+}
+function fillTemplates() {
+  $('tpl').innerHTML = Object.entries(TEMPLATES).map(([k, t]) => `<option value="${k}">${t.label}</option>`).join('');
+  $('tpl').onchange = () => applyTemplate($('tpl').value);
+}
+
+async function call(payload) {
+  const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pass, ...payload }) });
+  const out = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, out };
+}
+
+async function openTool() {
+  const r = await call({ action: 'list' });
+  if (!r.ok) {
+    pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {}
+    $('loginErr').textContent = r.out.error || 'Something went wrong.'; $('loginErr').classList.remove('hide');
+    $('login').classList.remove('hide'); $('tool').classList.add('hide');
+    return;
+  }
+  try { sessionStorage.setItem('dbm-pass', pass); } catch (e) {}
+  $('login').classList.add('hide'); $('tool').classList.remove('hide');
+  const list = r.out.enquiries || [];
+  $('lead').innerHTML = '<option value="">Choose a lead…</option>' + list.map((e, i) =>
+    `<option value="${i}">${e.name.replace(/</g, '')} (${e.email.replace(/</g, '')})${e.company ? ' · ' + e.company.replace(/</g, '') : ''}</option>`).join('');
+  $('lead').onchange = () => {
+    const e = list[$('lead').value]; if (!e) return;
+    $('to').value = e.email; $('to').dataset.name = e.name;
+    applyTemplate($('tpl').value === 'blank' ? 'first' : $('tpl').value);
+    if ($('tpl').value === 'blank') $('tpl').value = 'first';
+  };
+  try { $('from').value = localStorage.getItem('dbm-from') || ''; } catch (e) {}
+  fillTemplates(); applyTemplate('blank');
+}
+
+$('enter').onclick = () => { pass = $('pass').value; $('loginErr').classList.add('hide'); openTool(); };
+$('pass').onkeydown = (e) => { if (e.key === 'Enter') $('enter').click(); };
+$('lock').onclick = () => { pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {} location.reload(); };
+$('to').addEventListener('input', () => { if (!$('lead').value) $('to').dataset.name = ''; });
+
+$('form').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = $('send'), msg = $('msg');
+  btn.disabled = true; btn.textContent = 'Sending…'; msg.className = 'note hide';
+  try { localStorage.setItem('dbm-from', $('from').value); } catch (e2) {}
+  const r = await call({ action: 'send', to: $('to').value, subject: $('subject').value, message: $('message').value, from: $('from').value });
+  btn.disabled = false; btn.textContent = 'Send email';
+  if (r.ok && r.out.ok) {
+    msg.textContent = 'Sent to ' + $('to').value + '. The team has been BCC\'d.'; msg.className = 'note ok';
+    $('to').value = ''; $('to').dataset.name = ''; $('lead').value = ''; $('tpl').value = 'blank'; applyTemplate('blank');
+  } else { msg.textContent = r.out.error || 'Could not send.'; msg.className = 'note err'; }
+};
+
+if (pass) openTool();
+</script>
+</body>
+</html>

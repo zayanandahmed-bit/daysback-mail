@@ -76,7 +76,7 @@
 
       <label for="message">Message</label>
       <textarea id="message" required></textarea>
-      <p class="hint">Suggestions come from your three mailboxes (refreshed every time you open this page), website leads, and any contacts you import. <a href="#" id="importLink">Import contacts</a> (CSV or vCard exported from Hostinger Mail → Contacts)<input id="importFile" type="file" accept=".csv,.vcf,text/csv,text/vcard" class="hide"></p>
+      <p class="hint">Suggestions come from every email in your three mailboxes (checked every time you open this page), website leads, and any contacts you import. <a href="#" id="importLink">Import contacts</a> (CSV or vCard exported from Hostinger Mail → Contacts)<input id="importFile" type="file" accept=".csv,.vcf,text/csv,text/vcard" class="hide"></p>
       <p class="hint">Sent with the gradient header and your DaysBack signature. The team and the sending mailbox get a copy (BCC), and replies come back to the mailbox you sent from.</p>
 
       <button class="btn" id="send">Send email</button>
@@ -156,12 +156,22 @@ async function openTool() {
   const boxes = (check.out.mailboxes || []).filter((m) => m.ready);
   boxes.forEach((m) => step(m.email, 'Reading ' + m.email + '…'));
   step('leads', (check.out.enquiries || []).length + ' website leads loaded', 'done');
-  const sync = await call({ action: 'sync' });
-  (sync.out.results || []).forEach((x) => {
-    if (!boxes.some((m) => m.email === x.box)) return;
-    step(x.box, x.ok ? x.box + ': ' + x.count + ' contacts' : x.box + ': couldn\'t read', x.ok ? 'done' : 'fail');
-  });
-  if (!sync.ok) boxes.forEach((m) => step(m.email, m.email + ': couldn\'t read', 'fail'));
+  // First open reads every email; after that only new mail. Big mailboxes may
+  // need a few rounds, so keep going until every box reports done.
+  const totals = {};
+  for (let round = 0; round < 15; round++) {
+    const sync = await call({ action: 'sync' });
+    if (!sync.ok) { boxes.forEach((m) => step(m.email, m.email + ': couldn\'t read', 'fail')); break; }
+    let more = false;
+    (sync.out.results || []).forEach((x) => {
+      if (!boxes.some((m) => m.email === x.box)) return;
+      totals[x.box] = (totals[x.box] || 0) + x.count;
+      if (!x.ok) return step(x.box, x.box + ': couldn\'t read', 'fail');
+      if (!x.done) { more = true; return step(x.box, x.box + ': reading all emails… ' + totals[x.box] + ' contacts so far'); }
+      step(x.box, x.box + ': all emails checked, ' + totals[x.box] + ' new contacts', 'done');
+    });
+    if (!more) break;
+  }
   const r = await call({ action: 'list' });
   if (!r.ok) return showLogin(r.out.error);
   await new Promise((res) => setTimeout(res, 500));

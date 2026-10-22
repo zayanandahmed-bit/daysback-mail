@@ -129,10 +129,51 @@
   .cs-frame iframe { display:block; width:100%; height:calc(100vh - 220px); min-height:560px; border:0; }
   .cs-frame .empty { position:absolute; inset:0; display:grid; place-items:center; background:#fff; margin:0; }
   .tiny { text-align:center; color:var(--muted); font-size:12px; margin-top:22px; }
-  @media (max-width:900px) { .home-grid { grid-template-columns:1fr; } .grid3 { grid-template-columns:1fr 1fr; } }
+
+  /* instagram */
+  .ig-kpis .val { font-size:22px; }
+  .ig-layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:16px; align-items:start; margin-top:16px; }
+  .ig-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .ig-tile { position:relative; aspect-ratio:4/5; border:0; padding:0; border-radius:12px; overflow:hidden; cursor:pointer; text-align:left; color:#fff; font-family:inherit; }
+  .ig-tile img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .ig-tile .ph { position:absolute; inset:10px; font-weight:800; font-size:13px; line-height:1.2; }
+  .ig-tile .kind { position:absolute; top:6px; left:6px; background:rgba(23,18,58,.78); font-size:10.5px; font-weight:700; padding:3px 6px; border-radius:6px; }
+  .ig-tile .ov { position:absolute; left:0; right:0; bottom:0; padding:20px 7px 7px; background:linear-gradient(rgba(23,18,58,0),rgba(23,18,58,.88)); font-size:11px; line-height:1.3; display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
+  .ig-tile .ov b { font-size:11.5px; }
+  .ig-tile.sel { outline:3px solid var(--accent); outline-offset:2px; }
+  .ig-tile.today::after { content:'TODAY'; position:absolute; top:6px; right:6px; background:#ffd84d; color:#17123a; font-size:10px; font-weight:800; padding:3px 6px; border-radius:6px; }
+  .ig-tile.late .ov b { color:#ffb4b4; }
+  .pill { display:inline-block; font-size:11px; font-weight:700; line-height:1; padding:5px 8px; border-radius:999px; white-space:nowrap; }
+  .st-planned { background:#ecebf3; color:#4a4766; } .st-ready { background:#ece5ff; color:#4f23d6; } .st-scheduled { background:#e1eeff; color:#0a56b0; }
+  .st-posted { background:#d9f4ea; color:#006b55; } .st-check-rates { background:#ffeedd; color:#9a3f00; } .st-needs-data { background:#ffe3ec; color:#a50f48; }
+  .st-skip { background:#f1f1f4; color:#6f6b88; text-decoration:line-through; }
+  .ig-title { font-size:22px; margin:4px 0 2px; line-height:1.25; }
+  .ig-status { display:flex; gap:6px; flex-wrap:wrap; margin:14px 0; }
+  .ig-status button { border:1px solid var(--line); background:#fff; border-radius:999px; padding:7px 12px; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--muted); }
+  .ig-status button.on { background:var(--fg); color:#fff; border-color:var(--fg); }
+  .ig-media { display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory; min-height:60px; }
+  .ig-media img, .ig-media video { height:420px; border-radius:12px; flex:none; scroll-snap-align:start; background:var(--bg2); }
+  .ig-acts { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+  .ig-cap { white-space:pre-wrap; background:var(--bg2); border-radius:12px; padding:12px 14px; font-size:13.5px; max-height:240px; overflow:auto; }
+  .ig-metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .ig-metrics label { margin:8px 0 0; font-size:12px; color:var(--muted); }
+  .ig-metrics input { padding:8px 10px; margin-top:4px; }
+  .warn { background:#ffeedd; color:#7a3200; border-radius:12px; padding:10px 12px; font-size:13px; font-weight:600; margin:12px 0 0; }
+  .linkbtn { border:0; background:none; color:var(--accent); font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; padding:0 0 0 8px; }
+  .notes { list-style:none; margin:14px 0 0; padding:0; }
+  .notes li { padding:12px 0; border-bottom:1px solid var(--grid); white-space:pre-wrap; }
+  .notes .meta { color:var(--muted); font-size:12.5px; margin-top:4px; white-space:normal; }
+  .prose { line-height:1.6; }
+  .prose h2 { font-size:22px; margin:0 0 6px; } .prose h3 { font-size:17px; margin:26px 0 8px; } .prose h4 { font-size:15px; margin:18px 0 6px; }
+  .prose p { margin:8px 0; } .prose ul, .prose ol { padding-left:22px; margin:8px 0; } .prose li { margin:5px 0; }
+  .prose table { border-collapse:collapse; width:100%; font-size:13.5px; margin:10px 0; }
+  .prose th, .prose td { text-align:left; vertical-align:top; padding:7px 9px; border-bottom:1px solid var(--grid); }
+  .prose th { background:var(--bg2); }
+  @media (max-width:900px) { .home-grid { grid-template-columns:1fr; } .grid3 { grid-template-columns:1fr 1fr; } .ig-layout { grid-template-columns:minmax(0,1fr); } }
   @media (max-width:640px) {
     .kpis, .strip { grid-template-columns:1fr 1fr; } .grid2, .grid3 { grid-template-columns:1fr; }
     .row { flex-direction:column; gap:0; } .addtile { grid-template-columns:1fr; }
+    .ig-media img, .ig-media video { height:330px; } .ig-metrics { grid-template-columns:1fr 1fr; }
   }
 </style>
 </head>
@@ -149,6 +190,7 @@
       <button type="button" class="tab" data-tab="tool">Send email</button>
       <button type="button" class="tab" data-tab="stats">Website stats</button>
       <button type="button" class="tab" data-tab="cases">Case studies</button>
+      <button type="button" class="tab" data-tab="ig">Instagram</button>
       <button type="button" class="tab" id="lock" title="Lock">Lock</button>
     </div>
   </header>
@@ -265,6 +307,59 @@
     <div class="cs-frame"><iframe id="csFrame" title="Case studies"></iframe><p class="empty" id="csMsg">Loading…</p></div>
   </section>
 
+  <!-- INSTAGRAM -->
+  <section class="hide" id="ig">
+    <div class="kpis ig-kpis" id="igKpis"></div>
+    <div class="card cs-bar" style="margin-top:16px">
+      <div class="tabs" role="group" aria-label="Instagram">
+        <button type="button" class="tab on" data-ig="cal">Calendar</button>
+        <button type="button" class="tab" data-ig="news">Business updates</button>
+        <button type="button" class="tab" data-ig="plan">Growth plan</button>
+        <button type="button" class="tab" data-ig="lib">Case-study library</button>
+      </div>
+      <button type="button" class="btn sm outline" id="igRefresh">Refresh</button>
+    </div>
+
+    <div class="ig-pane" id="ig-cal">
+      <div class="ig-layout">
+        <div class="card" id="igDetail"><p class="empty">Loading…</p></div>
+        <div class="card">
+          <h2 class="sec">Next 30 days <span class="hint" style="font-weight:400">Reel every other day · new colour daily</span></h2>
+          <div class="ig-grid" id="igGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ig-pane hide" id="ig-news">
+      <div class="card narrow" style="margin:16px auto 0">
+        <h2 class="sec">What's happening in the business</h2>
+        <p class="hint" style="margin-top:0">New client, a win, a launch, an offer, a question a client asked. Next week's posts get made from this list.</p>
+        <textarea id="igNote" style="min-height:110px" maxlength="1000" placeholder="e.g. Signed our first dental practice in Leeds. They were missing 30+ calls a week."></textarea>
+        <div class="ig-acts">
+          <select id="igBy" style="width:auto"><option value="Zayan">Zayan</option><option value="Mazher">Mazher</option></select>
+          <button type="button" class="btn sm" id="igAddNote">Add update</button>
+          <span class="hint" id="igNoteMsg"></span>
+        </div>
+        <ul class="notes" id="igNotes"></ul>
+      </div>
+    </div>
+
+    <div class="ig-pane hide" id="ig-plan">
+      <div class="card prose narrow" style="margin:16px auto 0" id="igGrowth"></div>
+    </div>
+
+    <div class="ig-pane hide" id="ig-lib">
+      <div class="ig-layout">
+        <div class="card" id="igLibDetail"><p class="empty">Pick a case study.</p></div>
+        <div class="card">
+          <h2 class="sec">20 case-study carousels</h2>
+          <p class="warn" style="margin:0 0 12px">Locked: these use illustrative figures. They go live only after a real client's numbers (and their OK) replace them.</p>
+          <div class="ig-grid" id="igLib"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <p class="tiny">Team use only.</p>
 </div>
 
@@ -284,12 +379,13 @@ async function call(payload) {
 }
 
 // ---------------------------------------------------------------- tabs
-const SECTIONS = ['home', 'tool', 'stats', 'cases'];
+const SECTIONS = ['home', 'tool', 'stats', 'cases', 'ig'];
 function showTab(name) {
   document.querySelectorAll('.tab[data-tab]').forEach((x) => x.classList.toggle('on', x.dataset.tab === name));
   SECTIONS.forEach((s) => $(s).classList.toggle('hide', s !== name));
   if (name === 'stats') loadStats();
   if (name === 'cases') loadCases();
+  if (name === 'ig') loadIg();
   try { localStorage.setItem('hq-tab', name); } catch (e) {}
 }
 document.querySelectorAll('.tab[data-tab]').forEach((b) => { b.onclick = () => showTab(b.dataset.tab); });
@@ -755,6 +851,187 @@ $('csSave').onclick = () => {
   a.download = CS.version === 'internal' ? 'DAYSBACK-case-studies-INTERNAL.html' : 'DAYSBACK-case-studies.html';
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
+
+// ---------------------------------------------------------------- instagram
+// The calendar, team status/metrics and notes live in Supabase (daysback_hq) and the files in
+// the private daysback-ig bucket; this public page only ever gets one-hour signed links.
+const IG = { plan: [], status: {}, notes: [], library: [], growth: '', urls: {}, signedAt: 0, sel: '', libSel: '', pane: 'cal', loaded: false };
+const IG_THEME = { midnight: '#1b1446', paper: '#e9e5fb', violet: '#6c3cff', sunset: '#ff6a1a', mint: '#00b8a0', lemon: '#ffd84d', ink: '#17123a' };
+const IG_STATUS = { planned: 'Planned', ready: 'Ready', scheduled: 'Scheduled', posted: 'Posted', 'check-rates': 'Check rates', 'needs-data': 'Needs real data', skip: 'Skip' };
+const ukDate = (offset) => new Date(Date.now() + (offset || 0) * 864e5).toLocaleDateString('en-CA', { timeZone: 'Europe/London' });
+const igDay = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+const igSt = (p) => (IG.status[p.slug] || {}).status || p.status || 'planned';
+const igPost = () => IG.plan.find((x) => x.slug === IG.sel);
+// '17-legal-immigration-houston-tx' -> 'Legal Immigration Houston TX'
+const igPlace = (id) => id.split('-').slice(1).map((w) => (w.length === 2 ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1))).join(' ');
+
+async function igSign(paths) {
+  if (Date.now() - IG.signedAt > 45 * 60e3) { IG.urls = {}; IG.signedAt = Date.now(); }
+  const need = [...new Set(paths.filter((p) => p && !IG.urls[p]))];
+  for (let i = 0; i < need.length; i += 40) {
+    const r = await call({ action: 'ig_assets', paths: need.slice(i, i + 40) });
+    if (r.ok) (r.out.files || []).forEach((f) => { if (f.url) IG.urls[f.path] = f.url; });
+  }
+}
+async function loadIg(force) {
+  if (!IG.loaded || force) {
+    $('igGrid').innerHTML = '<p class="empty">Loading…</p>';
+    const r = await call({ action: 'ig_get' });
+    if (!r.ok) { $('igGrid').innerHTML = '<p class="note err">' + esc(r.out.error || 'Could not load.') + '</p>'; return; }
+    Object.assign(IG, r.out, { loaded: true });
+    if (force) IG.signedAt = 0;
+    const t = ukDate();
+    if (!IG.plan.some((p) => p.slug === IG.sel)) IG.sel = (IG.plan.find((p) => p.date >= t) || IG.plan[IG.plan.length - 1] || {}).slug || '';
+  }
+  await igSign(IG.plan.map((p) => p.thumb));
+  renderIg();
+}
+function renderIg() {
+  igKpis(); igGrid(); igDetail(); igNotes();
+  $('igGrowth').innerHTML = IG.growth || '<p class="empty">The growth plan hasn\'t been published yet.</p>';
+  if (IG.pane === 'lib') igLib();
+}
+function igKpis() {
+  const t = ukDate(), tm = ukDate(1);
+  const next = IG.plan.find((p) => p.date >= t && !['posted', 'skip'].includes(igSt(p)));
+  const when = !next ? 'All done' : next.date === t ? 'Today ' + next.time : next.date === tm ? 'Tomorrow ' + next.time : igDay(next.date);
+  const posted = IG.plan.filter((p) => igSt(p) === 'posted').length;
+  const sum = (k) => Object.values(IG.status).reduce((a, s) => a + Number((s.metrics || {})[k] || 0), 0);
+  $('igKpis').innerHTML = [
+    [esc(when), 'Next post', next ? (next.type === 'reel' ? 'Reel · ' : 'Carousel · ') + esc(next.title) : 'Time for the next 30 days'],
+    [posted + ' / ' + IG.plan.length, 'Posted from this plan', IG.plan.filter((p) => igSt(p) === 'scheduled').length + ' scheduled'],
+    [sum('views').toLocaleString('en-GB'), 'Views logged', sum('saves') + sum('shares') + ' saves + shares'],
+    [sum('follows').toLocaleString('en-GB'), 'Follows from posts', IG.notes.length + (IG.notes.length === 1 ? ' business update' : ' business updates') + ' logged'],
+  ].map(([v, l, d]) => `<div class="kpi"><span class="lbl">${l}</span><span class="val">${v}</span><span class="delta">${d}</span></div>`).join('');
+}
+function igTile(p, sel, extra) {
+  const st = p.status === 'needs-data' ? 'needs-data' : igSt(p), url = IG.urls[p.thumb];
+  const bg = p.type === 'reel' ? '#6c3cff' : (IG_THEME[p.theme] || '#ece9f8');
+  const kind = p.type === 'reel' ? '▶ Reel' : p.type === 'carousel' ? (p.slides || (p.files || []).length) + ' slides' : 'Case study';
+  return `<button type="button" class="ig-tile${sel ? ' sel' : ''}${extra || ''}" data-slug="${esc(p.slug || p.id)}" style="background:${bg}" title="${esc(p.title)}">
+    ${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="ph">${esc(p.title)}</span>`}
+    <span class="kind">${kind}</span>
+    <span class="ov">${p.date ? `<b>${igDay(p.date)} · ${esc(p.time)}</b>` : `<b>${esc(p.label || p.title)}</b>`}<span class="pill st-${st}">${IG_STATUS[st] || esc(st)}</span></span>
+  </button>`;
+}
+function igGrid() {
+  const t = ukDate();
+  $('igGrid').innerHTML = IG.plan.length ? IG.plan.map((p) => igTile(p, p.slug === IG.sel,
+    (p.date === t ? ' today' : '') + (p.date < t && !['posted', 'skip'].includes(igSt(p)) ? ' late' : ''))).join('')
+    : '<p class="empty">No calendar published yet.</p>';
+}
+const igName = (p, f) => 'DaysBack-day' + String(p.day).padStart(2, '0') + '-' + p.slug + '-' + f.split('/').pop();
+async function igDetail() {
+  const p = igPost(), el = $('igDetail');
+  if (!p) { el.innerHTML = '<p class="empty">Nothing planned yet.</p>'; return; }
+  const st = igSt(p), m = (IG.status[p.slug] || {}).metrics || {}, files = p.files || [], reel = p.type === 'reel';
+  el.innerHTML = `
+    <span class="hint">Day ${p.day} · ${igDay(p.date)} · ${esc(p.time)} UK${p.date === ukDate() ? ' · <b style="color:var(--accent)">today</b>' : ''}</span>
+    <h2 class="ig-title">${esc(p.title)}</h2>
+    <span class="hint">${reel ? 'Reel · ' + esc(p.fmt || '') + ' · 1080×1920 · 60 fps' : 'Carousel · ' + (p.slides || files.length) + ' slides · 4:5'} · ${esc(p.pillar || '')}</span>
+    ${st === 'check-rates' ? '<div class="warn">Waiting on the partner rates. Confirm 15% of the first project + 10% a month for 12 months (or set new ones) before this goes out.</div>' : ''}
+    <div class="ig-status">${['planned', 'ready', 'scheduled', 'posted', 'skip'].map((k) => `<button type="button" data-st="${k}" class="${k === st ? 'on' : ''}">${IG_STATUS[k]}</button>`).join('')}</div>
+    <div class="ig-media" id="igMedia"><p class="empty">${files.length ? 'Loading files…' : 'Files not uploaded yet.'}</p></div>
+    <div class="ig-acts">
+      <button type="button" class="btn sm" id="igDl"${files.length ? '' : ' disabled'}>${reel ? 'Download video' : 'Download all ' + files.length + ' slides'}</button>
+      ${reel && files[1] ? '<button type="button" class="btn sm outline" id="igCover">Download cover</button>' : ''}
+      <button type="button" class="btn sm outline" id="igCopy">Copy caption</button>
+    </div>
+    <div class="ig-cap">${esc(p.caption || '')}</div>
+    <p class="hint">To post: Meta Business Suite → Create ${reel ? 'reel → upload the video, add a trending sound' : 'post → upload the slides in order'} → paste the caption → schedule for ${igDay(p.date)}, ${esc(p.time)}. Then tap Scheduled above.</p>
+    <details class="tbl"${st === 'posted' ? ' open' : ''}><summary>Results (fill in 2 days after posting)</summary>
+      <div class="ig-metrics">${['views', 'reach', 'likes', 'comments', 'saves', 'shares', 'follows'].map((k) => `<label>${k[0].toUpperCase() + k.slice(1)}<input type="number" min="0" inputmode="numeric" data-m="${k}" value="${m[k] ?? ''}"></label>`).join('')}</div>
+      <div class="ig-acts"><button type="button" class="btn sm" id="igSaveM">Save results</button><span class="hint" id="igMMsg"></span></div>
+    </details>`;
+  if (!files.length) return;
+  const view = reel ? files : (p.previews && p.previews.length ? p.previews : files);   // light JPEG previews; downloads stay full size
+  await igSign(view);
+  if (igPost() !== p) return;
+  $('igMedia').innerHTML = reel
+    ? `<video src="${esc(IG.urls[files[0]] || '')}" ${files[1] && IG.urls[files[1]] ? `poster="${esc(IG.urls[files[1]])}"` : ''} controls playsinline preload="metadata"></video>`
+    : view.map((f) => `<img src="${esc(IG.urls[f] || '')}" alt="" loading="lazy">`).join('');
+}
+function igDownload(paths, p) {
+  paths.forEach((f, i) => setTimeout(() => {
+    const u = IG.urls[f]; if (!u) return;
+    const a = document.createElement('a');
+    a.href = u + '&download=' + encodeURIComponent(igName(p, f)); a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+  }, i * 450));
+}
+$('igDetail').addEventListener('click', async (e) => {
+  const p = igPost(); if (!p) return;
+  const b = e.target.closest('[data-st]');
+  if (b) {
+    const r = await call({ action: 'ig_update', slug: p.slug, status: b.dataset.st });
+    if (!r.ok) { alert(r.out.error || 'Could not save.'); return; }
+    IG.status[p.slug] = r.out.status; igKpis(); igGrid();
+    document.querySelectorAll('#igDetail [data-st]').forEach((x) => x.classList.toggle('on', x === b));
+    return;
+  }
+  if (e.target.id === 'igDl') { await igSign(p.files); igDownload(p.type === 'reel' ? p.files.slice(0, 1) : p.files, p); }
+  if (e.target.id === 'igCover') { await igSign(p.files); igDownload(p.files.slice(1, 2), p); }
+  if (e.target.id === 'igCopy') {
+    try { await navigator.clipboard.writeText(p.caption || ''); e.target.textContent = 'Copied ✓'; } catch (err) { e.target.textContent = 'Select the text to copy'; }
+    setTimeout(() => { if ($('igCopy')) $('igCopy').textContent = 'Copy caption'; }, 1800);
+  }
+  if (e.target.id === 'igSaveM') {
+    const metrics = {};
+    document.querySelectorAll('#igDetail [data-m]').forEach((i) => { if (i.value !== '') metrics[i.dataset.m] = Number(i.value); });
+    const r = await call({ action: 'ig_update', slug: p.slug, metrics });
+    $('igMMsg').textContent = r.ok ? 'Saved.' : (r.out.error || 'Could not save.');
+    if (r.ok) { IG.status[p.slug] = r.out.status; igKpis(); }
+  }
+});
+$('igGrid').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-slug]'); if (!t) return;
+  IG.sel = t.dataset.slug; igGrid(); igDetail();
+  if ($('igDetail').getBoundingClientRect().top < 0 || window.innerWidth < 900) $('igDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+function igNotes() {
+  $('igNotes').innerHTML = IG.notes.length ? IG.notes.map((n, i) => `<li>${esc(n.text)}<div class="meta">${esc(n.by)} · ${ago(n.at)}<button type="button" class="linkbtn" data-rm="${i}">Remove</button></div></li>`).join('')
+    : '<li class="empty">Nothing logged yet.</li>';
+}
+$('igAddNote').onclick = async () => {
+  const text = $('igNote').value.trim(); if (!text) return;
+  $('igAddNote').disabled = true;
+  const r = await call({ action: 'ig_note', text, by: $('igBy').value });
+  $('igAddNote').disabled = false;
+  $('igNoteMsg').textContent = r.ok ? 'Added.' : (r.out.error || 'Could not save.');
+  if (r.ok) { IG.notes = r.out.notes; $('igNote').value = ''; igNotes(); igKpis(); }
+};
+$('igNotes').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-rm]'); if (!b || !confirm('Remove this update?')) return;
+  const r = await call({ action: 'ig_note', remove: Number(b.dataset.rm) });
+  if (r.ok) { IG.notes = r.out.notes; igNotes(); igKpis(); }
+});
+
+async function igLib() {
+  await igSign(IG.library.map((c) => c.thumb));
+  $('igLib').innerHTML = IG.library.length ? IG.library.map((c) => igTile({ ...c, slug: c.id, status: 'needs-data', label: igPlace(c.id) }, c.id === IG.libSel)).join('')
+    : '<p class="empty">Not published yet.</p>';
+  const c = IG.library.find((x) => x.id === IG.libSel), el = $('igLibDetail');
+  if (!c) { el.innerHTML = '<p class="empty">Pick a case study to preview it.</p>'; return; }
+  el.innerHTML = `<span class="pill st-needs-data">Needs real data</span><h2 class="ig-title">${esc(c.title)}</h2>
+    <p class="warn">${esc(c.note || '')}</p><div class="ig-media" id="igLibMedia"><p class="empty">Loading…</p></div><div class="ig-cap">${esc(c.caption || '')}</div>`;
+  const view = c.previews && c.previews.length ? c.previews : (c.files || []);
+  await igSign(view);
+  if (IG.libSel !== c.id) return;
+  $('igLibMedia').innerHTML = view.map((f) => `<img src="${esc(IG.urls[f] || '')}" alt="" loading="lazy">`).join('');
+}
+$('igLib').addEventListener('click', (e) => { const t = e.target.closest('[data-slug]'); if (t) { IG.libSel = t.dataset.slug; igLib(); } });
+
+document.querySelectorAll('[data-ig]').forEach((b) => {
+  b.onclick = () => {
+    IG.pane = b.dataset.ig;
+    document.querySelectorAll('[data-ig]').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.ig-pane').forEach((x) => x.classList.toggle('hide', x.id !== 'ig-' + IG.pane));
+    if (IG.pane === 'lib') igLib();
+  };
+});
+$('igRefresh').onclick = () => loadIg(true);
+try { const f = localStorage.getItem('dbm-from'); if (f) $('igBy').value = f; } catch (e) {}
 
 if (pass) openTool();
 </script>

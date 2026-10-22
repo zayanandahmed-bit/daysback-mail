@@ -26,6 +26,25 @@
   .note { margin:14px 0 0; font-weight:600; } .ok { color:var(--ok); } .err { color:var(--err); }
   .hint { color:var(--muted); font-size:12px; margin-top:6px; }
   a { color:var(--accent); }
+  .tabs { display:flex; gap:8px; margin-bottom:14px; }
+  .tab { border:1px solid var(--line); background:#fff; color:var(--muted); font:600 14px inherit; padding:10px 18px; border-radius:999px; cursor:pointer; }
+  .tab.on { background:linear-gradient(90deg,#6c3cff,#e0307e); color:#fff; border-color:transparent; }
+  .stats-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .stats-head select { width:auto; }
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0 6px; }
+  .kpi { background:var(--bg2); border-radius:14px; padding:14px; }
+  .kpi b { display:block; font-size:26px; color:var(--fg); }
+  .kpi span { font-size:12px; color:var(--muted); }
+  #stats h3 { font-size:14px; margin:20px 0 8px; }
+  .bars { display:flex; align-items:flex-end; gap:3px; height:120px; padding:6px 0; border-bottom:1px solid var(--line); }
+  .bars div { flex:1; min-width:3px; background:linear-gradient(180deg,#6c3cff,#e0307e); border-radius:4px 4px 0 0; position:relative; }
+  .bars div:hover::after { content:attr(data-t); position:absolute; bottom:100%; left:50%; transform:translateX(-50%); background:var(--fg); color:#fff; font-size:11px; padding:3px 6px; border-radius:6px; white-space:nowrap; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .rows { list-style:none; margin:0; padding:0; }
+  .rows li { display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .rows li span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .empty { color:var(--muted); font-size:13px; }
+  @media (max-width:560px){ .kpis{grid-template-columns:1fr 1fr} .cols{grid-template-columns:1fr} }
   #loading { text-align:center; padding:40px 24px; }
   .spin { width:40px; height:40px; margin:0 auto 16px; border-radius:50%; border:4px solid var(--bg2); border-top-color:var(--accent); border-right-color:var(--pink); animation:spin .8s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
@@ -55,6 +74,26 @@
     <div class="spin"></div>
     <p class="load-title">Getting everything ready…</p>
     <ul class="steps" id="steps"></ul>
+  </div>
+
+  <div class="tabs hide" id="tabs">
+    <button type="button" class="tab on" data-tab="tool">Send email</button>
+    <button type="button" class="tab" data-tab="stats">Website stats</button>
+  </div>
+
+  <div class="card hide" id="stats">
+    <div class="stats-head"><strong>daysback.si</strong>
+      <select id="range"><option value="1">Today</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <h3>Visitors per day</h3>
+    <div class="bars" id="bars"></div>
+    <div class="cols">
+      <div><h3>Top pages</h3><ul class="rows" id="pages"></ul></div>
+      <div><h3>Where they came from</h3><ul class="rows" id="sources"></ul></div>
+    </div>
+    <h3>Devices</h3><ul class="rows" id="devices"></ul>
+    <p class="hint">Cookie-free: no cookies, no IP addresses stored. A visitor is counted once per day. Bots are skipped.</p>
   </div>
 
   <div class="card hide" id="tool">
@@ -138,7 +177,7 @@ async function call(payload) {
 function showLogin(err) {
   pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {}
   $('loginErr').textContent = err || 'Something went wrong.'; $('loginErr').classList.remove('hide');
-  $('login').classList.remove('hide'); $('loading').classList.add('hide'); $('tool').classList.add('hide');
+  $('login').classList.remove('hide'); $('loading').classList.add('hide'); $('tool').classList.add('hide'); $('tabs').classList.add('hide'); $('stats').classList.add('hide');
 }
 function step(id, text, cls) {
   let li = document.getElementById('st-' + id);
@@ -175,7 +214,7 @@ async function openTool() {
   const r = await call({ action: 'list' });
   if (!r.ok) return showLogin(r.out.error);
   await new Promise((res) => setTimeout(res, 500));
-  $('loading').classList.add('hide'); $('tool').classList.remove('hide');
+  $('loading').classList.add('hide'); $('tool').classList.remove('hide'); $('tabs').classList.remove('hide');
   loadPeople(r.out);
   try { const f = localStorage.getItem('dbm-from'); if (f) $('from').value = f; } catch (e) {}
   fillTemplates(); applyTemplate('blank');
@@ -254,6 +293,42 @@ $('form').onsubmit = async (e) => {
     call({ action: 'list' }).then((l) => { if (l.ok) loadPeople(l.out); });
   } else { msg.textContent = r.out.error || 'Could not send.'; msg.className = 'note err'; }
 };
+
+// ---------- Website stats ----------
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const list = (el, rows, label, val) => {
+  $(el).innerHTML = rows.length ? rows.map((r) => `<li><span>${esc(label(r))}</span><b>${r[val]}</b></li>`).join('') : '<li class="empty">Nothing yet</li>';
+};
+async function loadStats() {
+  const days = Number($('range').value);
+  $('kpis').innerHTML = '<p class="empty">Loading…</p>';
+  const r = await call({ action: 'stats', days });
+  if (!r.ok) { $('kpis').innerHTML = '<p class="note err">' + esc(r.out.error || 'Could not load stats.') + '</p>'; return; }
+  const s = r.out;
+  const k = [[s.today_visitors, 'Visitors today'], [s.visitors, 'Visitors'], [s.views, 'Page views'], [s.enquiries, 'Enquiries']];
+  $('kpis').innerHTML = k.map(([n, l]) => `<div class="kpi"><b>${n}</b><span>${l}</span></div>`).join('');
+  // one bar per day in the range, including empty days
+  const map = Object.fromEntries((s.by_day || []).map((d) => [d.day, d.visitors]));
+  const out = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 864e5).toISOString().slice(0, 10);
+    out.push([d, map[d] || 0]);
+  }
+  const max = Math.max(1, ...out.map((o) => o[1]));
+  $('bars').innerHTML = out.map(([d, n]) => `<div style="height:${Math.max(2, (n / max) * 100)}%" data-t="${d}: ${n}"></div>`).join('');
+  list('pages', s.pages || [], (x) => x.path, 'views');
+  list('sources', s.sources || [], (x) => x.source, 'visitors');
+  list('devices', s.devices || [], (x) => x.device, 'visitors');
+}
+$('range').onchange = loadStats;
+document.querySelectorAll('.tab').forEach((b) => {
+  b.onclick = () => {
+    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
+    $('tool').classList.toggle('hide', b.dataset.tab !== 'tool');
+    $('stats').classList.toggle('hide', b.dataset.tab !== 'stats');
+    if (b.dataset.tab === 'stats') loadStats();
+  };
+});
 
 if (pass) openTool();
 </script>

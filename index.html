@@ -123,6 +123,11 @@
   .funnel .track div { height:100%; background:var(--series); border-radius:0 4px 4px 0; min-width:2px; }
   .empty { color:var(--muted); font-size:13px; padding:6px 0; }
 
+  .cs-bar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:14px 16px; }
+  .cs-acts { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .cs-frame { position:relative; background:#fff; border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:0 10px 40px rgba(108,60,255,.07); }
+  .cs-frame iframe { display:block; width:100%; height:calc(100vh - 220px); min-height:560px; border:0; }
+  .cs-frame .empty { position:absolute; inset:0; display:grid; place-items:center; background:#fff; margin:0; }
   .tiny { text-align:center; color:var(--muted); font-size:12px; margin-top:22px; }
   @media (max-width:900px) { .home-grid { grid-template-columns:1fr; } .grid3 { grid-template-columns:1fr 1fr; } }
   @media (max-width:640px) {
@@ -143,6 +148,7 @@
       <button type="button" class="tab on" data-tab="home">Home</button>
       <button type="button" class="tab" data-tab="tool">Send email</button>
       <button type="button" class="tab" data-tab="stats">Website stats</button>
+      <button type="button" class="tab" data-tab="cases">Case studies</button>
       <button type="button" class="tab" id="lock" title="Lock">Lock</button>
     </div>
   </header>
@@ -242,6 +248,23 @@
     <p class="hint">Cookie-free: no cookies and no IP addresses stored. A visitor is counted once per day, location comes from their device's time zone, and bots are skipped. Compared with the previous period of the same length.</p>
   </section>
 
+  <!-- CASE STUDIES -->
+  <section class="hide" id="cases">
+    <div class="card cs-bar">
+      <div class="tabs" role="group" aria-label="Version">
+        <button type="button" class="tab on" data-cs="client">Client version</button>
+        <button type="button" class="tab" data-cs="internal">Internal (sources & ROI)</button>
+      </div>
+      <div class="cs-acts">
+        <span class="hint" id="csUpdated"></span>
+        <button type="button" class="btn sm outline" id="csOpen">Open full screen</button>
+        <button type="button" class="btn sm outline" id="csSave">Download</button>
+      </div>
+    </div>
+    <p class="hint" style="margin:10px 2px">Team view. These are drafts with example figures until you swap in real client numbers.</p>
+    <div class="cs-frame"><iframe id="csFrame" title="Case studies"></iframe><p class="empty" id="csMsg">Loading…</p></div>
+  </section>
+
   <p class="tiny">Team use only.</p>
 </div>
 
@@ -261,11 +284,12 @@ async function call(payload) {
 }
 
 // ---------------------------------------------------------------- tabs
-const SECTIONS = ['home', 'tool', 'stats'];
+const SECTIONS = ['home', 'tool', 'stats', 'cases'];
 function showTab(name) {
   document.querySelectorAll('.tab[data-tab]').forEach((x) => x.classList.toggle('on', x.dataset.tab === name));
   SECTIONS.forEach((s) => $(s).classList.toggle('hide', s !== name));
   if (name === 'stats') loadStats();
+  if (name === 'cases') loadCases();
   try { localStorage.setItem('hq-tab', name); } catch (e) {}
 }
 document.querySelectorAll('.tab[data-tab]').forEach((b) => { b.onclick = () => showTab(b.dataset.tab); });
@@ -701,6 +725,36 @@ async function loadStats() {
 }
 $('range').onchange = loadStats;
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (lastStats && !$('stats').classList.contains('hide')) loadStats(); }, 300); });
+
+// ---------------------------------------------------------------- case studies
+// Kept out of this public page: fetched through the passcode-checked function
+// and shown from a blob URL so the case pages' own # navigation works.
+const CS = { version: 'client', cache: {}, url: '' };
+async function loadCases(force) {
+  const v = CS.version;
+  document.querySelectorAll('[data-cs]').forEach((b) => b.classList.toggle('on', b.dataset.cs === v));
+  if (!CS.cache[v] || force) {
+    $('csMsg').textContent = 'Loading…'; $('csMsg').classList.remove('hide');
+    const r = await call({ action: 'case_studies', version: v });
+    if (!r.ok) { $('csMsg').textContent = r.out.error || 'Could not load the case studies.'; return; }
+    CS.cache[v] = r.out;
+  }
+  const d = CS.cache[v];
+  if (CS.url) URL.revokeObjectURL(CS.url);
+  CS.url = URL.createObjectURL(new Blob([d.html], { type: 'text/html' }));
+  $('csFrame').src = CS.url;
+  $('csMsg').classList.add('hide');
+  $('csUpdated').textContent = d.updated ? 'Updated ' + new Date(d.updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+}
+document.querySelectorAll('[data-cs]').forEach((b) => { b.onclick = () => { CS.version = b.dataset.cs; loadCases(); }; });
+$('csOpen').onclick = () => { if (CS.url) window.open(CS.url, '_blank'); };
+$('csSave').onclick = () => {
+  const d = CS.cache[CS.version]; if (!d) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([d.html], { type: 'text/html' }));
+  a.download = CS.version === 'internal' ? 'DAYSBACK-case-studies-INTERNAL.html' : 'DAYSBACK-case-studies.html';
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
 
 if (pass) openTool();
 </script>

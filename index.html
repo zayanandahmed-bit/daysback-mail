@@ -21,6 +21,7 @@
   .sub { color:var(--muted); margin:4px 0 0; font-size:14px; }
   .card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 10px 40px rgba(108,60,255,.07); }
   .card + .card { margin-top:16px; }
+  .grid2 > .card, .grid3 > .card { margin-top:0; }
   label { display:block; font-weight:600; font-size:13px; margin:14px 0 6px; }
   input, textarea, select { width:100%; border:1px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 14px; font:inherit; color:var(--fg); }
   input:focus, textarea:focus, select:focus { outline:none; border-color:var(--accent); background:#fff; }
@@ -356,7 +357,11 @@ let editing = false;
 const host = (u) => { try { return new URL(u).hostname; } catch (e) { return ''; } };
 function tileHtml(t, i) {
   const h = host(t.url);
-  const icon = h ? `<img src="https://www.google.com/s2/favicons?domain=${esc(h)}&sz=64" alt="" loading="lazy" onerror="this.outerHTML='<span class=letter>${esc((t.name[0] || '?').toUpperCase())}</span>'">` : `<span class="letter">${esc((t.name[0] || '?').toUpperCase())}</span>`;
+  // our own sites use the DaysBack logo; others use the main domain's icon (mail.hostinger.com -> hostinger.com)
+  const own = /(^|\.)daysback\.si$/.test(h) || /zayanandahmed-bit\.github\.io/.test(h);
+  const dom = h.split('.').slice(-2).join('.');
+  const src = own ? 'https://daysback.si/logo.png' : `https://www.google.com/s2/favicons?domain=${esc(dom)}&sz=64`;
+  const icon = h ? `<img src="${src}" alt="" loading="lazy" onerror="this.outerHTML='<span class=letter>${esc((t.name[0] || '?').toUpperCase())}</span>'">` : `<span class="letter">${esc((t.name[0] || '?').toUpperCase())}</span>`;
   return `<a class="tile" href="${esc(t.url)}" target="_blank" rel="noopener" data-i="${i}" data-s="${esc((t.name + ' ' + t.note + ' ' + t.group + ' ' + h).toLowerCase())}">${icon}<span><b>${esc(t.name)}</b>${t.note ? `<small>${esc(t.note)}</small>` : ''}</span><button type="button" class="x" data-del="${i}" aria-label="Remove">×</button></a>`;
 }
 function renderTiles() {
@@ -647,7 +652,7 @@ async function loadStats() {
   const r = await call({ action: 'stats', days });
   if (!r.ok) { $('kpis').innerHTML = '<p class="note err">' + esc(r.out.error || 'Could not load stats.') + '</p>'; return; }
   const s = lastStats = r.out, c = s.cur, p = s.prev;
-  const conv = (o) => (o.visitors ? Math.round((o.enquiries / o.visitors) * 1000) / 10 : 0);
+  const conv = (o) => (o.visitors ? Math.round(((o.converted || 0) / o.visitors) * 1000) / 10 : 0);
   const k = [
     [`<span class="live-dot"></span>${s.live}`, 'On the site now', '<span class="delta">last 5 minutes</span>'],
     [c.visitors, 'Visitors', delta(c.visitors, p.visitors)],

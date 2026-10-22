@@ -4,17 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>DaysBack Mail</title>
+<title>DaysBack HQ</title>
+<link rel="icon" href="https://daysback.si/logo.png">
 <style>
-  :root { --bg:#fdfcff; --bg2:#f4f2ff; --fg:#17123a; --muted:#5f5b7e; --accent:#6c3cff; --pink:#e0307e; --line:#e3dff7; --ok:#00997f; --err:#d81b60; }
+  :root { --bg:#fdfcff; --bg2:#f4f2ff; --fg:#17123a; --muted:#5f5b7e; --faint:#8e8aab; --accent:#6c3cff; --pink:#e0307e;
+          --line:#e3dff7; --grid:#ece9f8; --ok:#00997f; --err:#d81b60; --good:#0ca30c; --bad:#d03b3b; --series:#6c3cff; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; }
   .bar { height:6px; background:linear-gradient(90deg,#6c3cff,#e0307e 55%,#ff6a1a); }
-  .wrap { max-width:760px; margin:0 auto; padding:28px 16px 60px; }
-  h1 { font-size:22px; margin:0 0 4px; letter-spacing:.3px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:24px 16px 60px; }
+  .narrow { max-width:760px; }
+  header.top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+  h1 { font-size:22px; margin:0; letter-spacing:.3px; display:flex; align-items:center; gap:10px; }
+  h1 img { width:34px; height:34px; border-radius:9px; }
   h1 span { background:linear-gradient(90deg,#6c3cff,#e0307e); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .sub { color:var(--muted); margin:0 0 22px; }
-  .card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:24px; box-shadow:0 10px 40px rgba(108,60,255,.08); }
+  .sub { color:var(--muted); margin:4px 0 0; font-size:14px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 10px 40px rgba(108,60,255,.07); }
+  .card + .card { margin-top:16px; }
   label { display:block; font-weight:600; font-size:13px; margin:14px 0 6px; }
   input, textarea, select { width:100%; border:1px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 14px; font:inherit; color:var(--fg); }
   input:focus, textarea:focus, select:focus { outline:none; border-color:var(--accent); background:#fff; }
@@ -22,46 +28,123 @@
   .row { display:flex; gap:12px; } .row > * { flex:1; }
   .btn { margin-top:18px; border:0; cursor:pointer; color:#fff; font-weight:700; font-size:15px; padding:13px 26px; border-radius:999px; background:linear-gradient(90deg,#6c3cff,#e0307e); }
   .btn:disabled { opacity:.6; cursor:default; }
+  .btn.sm { margin:0; padding:8px 14px; font-size:13px; }
   .ghost { background:transparent; color:var(--muted); font-weight:600; padding:13px 8px; }
+  .outline { background:#fff; color:var(--fg); border:1px solid var(--line); }
   .note { margin:14px 0 0; font-weight:600; } .ok { color:var(--ok); } .err { color:var(--err); }
   .hint { color:var(--muted); font-size:12px; margin-top:6px; }
   a { color:var(--accent); }
-  .tabs { display:flex; gap:8px; margin-bottom:14px; }
-  .tab { border:1px solid var(--line); background:#fff; color:var(--muted); font:600 14px inherit; padding:10px 18px; border-radius:999px; cursor:pointer; }
+  .hide { display:none !important; }
+  h2.sec { font-size:15px; margin:0 0 12px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  h3 { font-size:14px; margin:0 0 10px; }
+
+  /* tabs */
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; }
+  .tab { border:1px solid var(--line); background:#fff; color:var(--muted); font:600 14px/1 inherit; padding:11px 18px; border-radius:999px; cursor:pointer; }
   .tab.on { background:linear-gradient(90deg,#6c3cff,#e0307e); color:#fff; border-color:transparent; }
-  .stats-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-  .stats-head select { width:auto; }
-  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0 6px; }
-  .kpi { background:var(--bg2); border-radius:14px; padding:14px; }
-  .kpi b { display:block; font-size:26px; color:var(--fg); }
-  .kpi span { font-size:12px; color:var(--muted); }
-  #stats h3 { font-size:14px; margin:20px 0 8px; }
-  .bars { display:flex; align-items:flex-end; gap:3px; height:120px; padding:6px 0; border-bottom:1px solid var(--line); }
-  .bars div { flex:1; min-width:3px; background:linear-gradient(180deg,#6c3cff,#e0307e); border-radius:4px 4px 0 0; position:relative; }
-  .bars div:hover::after { content:attr(data-t); position:absolute; bottom:100%; left:50%; transform:translateX(-50%); background:var(--fg); color:#fff; font-size:11px; padding:3px 6px; border-radius:6px; white-space:nowrap; }
-  .cols { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-  .rows { list-style:none; margin:0; padding:0; }
-  .rows li { display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px; }
-  .rows li span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .empty { color:var(--muted); font-size:13px; }
-  @media (max-width:560px){ .kpis{grid-template-columns:1fr 1fr} .cols{grid-template-columns:1fr} }
-  #loading { text-align:center; padding:40px 24px; }
+
+  /* login / loading */
+  #login, #loading { max-width:460px; margin:40px auto 0; }
+  #loading { text-align:center; padding:36px 24px; }
   .spin { width:40px; height:40px; margin:0 auto 16px; border-radius:50%; border:4px solid var(--bg2); border-top-color:var(--accent); border-right-color:var(--pink); animation:spin .8s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
   .load-title { font-weight:700; margin:0 0 14px; }
-  .steps { list-style:none; padding:0; margin:0 auto; max-width:360px; text-align:left; color:var(--muted); font-size:14px; }
+  .steps { list-style:none; padding:0; margin:0 auto; max-width:380px; text-align:left; color:var(--muted); font-size:14px; }
   .steps li { padding:5px 0; } .steps li.done { color:var(--ok); } .steps li.fail { color:var(--err); }
   .steps li::before { content:'○  '; } .steps li.done::before { content:'✓  '; } .steps li.fail::before { content:'!  '; }
-  .tiny { text-align:center; color:var(--muted); font-size:12px; margin-top:18px; }
-  .hide { display:none; }
-  @media (max-width:560px){ .row{flex-direction:column;gap:0} }
+
+  /* home */
+  .hello { font-size:26px; font-weight:800; margin:0; }
+  .clock { color:var(--muted); font-size:14px; }
+  .search { position:relative; margin:16px 0 18px; }
+  .search input { padding:15px 18px 15px 46px; font-size:16px; background:#fff; border-radius:16px; box-shadow:0 6px 24px rgba(108,60,255,.06); }
+  .search::before { content:'⌕'; position:absolute; left:17px; top:50%; transform:translateY(-52%); font-size:22px; color:var(--faint); }
+  .strip { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+  .home-grid { display:grid; grid-template-columns:1fr 360px; gap:16px; align-items:start; }
+  .group { margin-bottom:18px; }
+  .group h4 { margin:0 0 8px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .tile { position:relative; display:flex; align-items:center; gap:10px; padding:12px; background:#fff; border:1px solid var(--line); border-radius:14px; color:var(--fg); text-decoration:none; transition:transform .15s, border-color .15s, box-shadow .15s; min-height:58px; }
+  .tile:hover { transform:translateY(-2px); border-color:var(--accent); box-shadow:0 8px 22px rgba(108,60,255,.12); }
+  .tile img, .tile .letter { width:28px; height:28px; border-radius:8px; flex:none; }
+  .tile .letter { display:grid; place-items:center; background:var(--bg2); color:var(--accent); font-weight:800; }
+  .tile b { display:block; font-size:13.5px; line-height:1.25; }
+  .tile small { display:block; color:var(--muted); font-size:11.5px; line-height:1.25; }
+  .tile .x { position:absolute; top:-7px; right:-7px; width:22px; height:22px; border-radius:50%; border:0; background:var(--err); color:#fff; font-size:13px; cursor:pointer; display:none; }
+  .editing .tile .x { display:block; }
+  .editing .tile { border-style:dashed; }
+  .addtile { display:grid; grid-template-columns:1fr 1.6fr 1fr auto; gap:8px; margin-top:12px; }
+  .addtile input, .addtile select { padding:10px 12px; font-size:14px; }
+  .enq { list-style:none; margin:0; padding:0; }
+  .enq li { padding:11px 0; border-bottom:1px solid var(--grid); }
+  .enq li:last-child { border-bottom:0; }
+  .enq .who { font-weight:700; font-size:14px; }
+  .enq .meta { color:var(--muted); font-size:12.5px; }
+  .enq .acts { display:flex; gap:8px; margin-top:6px; }
+  .enq .acts a, .enq .acts button { font:600 12.5px inherit; padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:#fff; color:var(--accent); cursor:pointer; text-decoration:none; }
+
+  /* stat tiles */
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .kpi { background:var(--bg2); border-radius:14px; padding:14px 14px 12px; }
+  .kpi .lbl { font-size:12.5px; color:var(--muted); }
+  .kpi .val { display:block; font-size:26px; font-weight:800; color:var(--fg); line-height:1.25; font-variant-numeric:tabular-nums; }
+  .kpi .delta { font-size:12px; color:var(--muted); }
+  .kpi .delta i { font-style:normal; font-weight:800; margin-right:3px; }
+  .kpi .delta i.up { color:var(--good); } .kpi .delta i.down { color:var(--bad); } .kpi .delta i.flat { color:var(--faint); }
+  .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--good); margin-right:6px; box-shadow:0 0 0 0 rgba(12,163,12,.5); animation:pulse 1.6s infinite; }
+  @keyframes pulse { 70% { box-shadow:0 0 0 8px rgba(12,163,12,0); } 100% { box-shadow:0 0 0 0 rgba(12,163,12,0); } }
+
+  /* stats */
+  .stats-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .stats-head select { width:auto; }
+  .chart { position:relative; }
+  .chart svg { display:block; width:100%; height:220px; overflow:visible; }
+  .chart .axis text { font-size:11px; fill:var(--faint); }
+  .tip { position:absolute; pointer-events:none; background:var(--fg); color:#fff; font-size:12px; padding:7px 10px; border-radius:8px; white-space:nowrap; transform:translate(-50%,-100%); margin-top:-8px; }
+  .tip strong { font-size:14px; }
+  .tip .k { display:inline-block; width:10px; height:2px; background:var(--series); vertical-align:middle; margin-right:5px; }
+  details.tbl { margin-top:10px; font-size:13px; }
+  details.tbl summary { cursor:pointer; color:var(--accent); font-weight:600; }
+  details.tbl table { border-collapse:collapse; margin-top:8px; width:100%; max-width:420px; }
+  details.tbl td, details.tbl th { text-align:left; padding:4px 8px; border-bottom:1px solid var(--grid); font-variant-numeric:tabular-nums; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .blist { list-style:none; margin:0; padding:0; }
+  .blist li { position:relative; display:flex; justify-content:space-between; gap:10px; padding:8px 10px; margin-bottom:4px; font-size:13.5px; border-radius:8px; overflow:hidden; }
+  .blist li .fill { position:absolute; left:0; top:0; bottom:0; background:var(--series); opacity:.12; border-radius:0 4px 4px 0; }
+  .blist li span, .blist li b { position:relative; }
+  .blist li span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .blist li b { font-variant-numeric:tabular-nums; }
+  .blist li em { font-style:normal; color:var(--muted); font-weight:400; margin-left:6px; }
+  .funnel .step { margin-bottom:10px; }
+  .funnel .step .t { display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:4px; }
+  .funnel .track { height:12px; background:var(--grid); border-radius:0 4px 4px 0; }
+  .funnel .track div { height:100%; background:var(--series); border-radius:0 4px 4px 0; min-width:2px; }
+  .empty { color:var(--muted); font-size:13px; padding:6px 0; }
+
+  .tiny { text-align:center; color:var(--muted); font-size:12px; margin-top:22px; }
+  @media (max-width:900px) { .home-grid { grid-template-columns:1fr; } .grid3 { grid-template-columns:1fr 1fr; } }
+  @media (max-width:640px) {
+    .kpis, .strip { grid-template-columns:1fr 1fr; } .grid2, .grid3 { grid-template-columns:1fr; }
+    .row { flex-direction:column; gap:0; } .addtile { grid-template-columns:1fr; }
+  }
 </style>
 </head>
 <body>
 <div class="bar"></div>
 <div class="wrap">
-  <h1>DaysBack <span>Mail</span></h1>
-  <p class="sub">Send any email in the DaysBack template, from your DaysBack mailbox.</p>
+  <header class="top">
+    <div>
+      <h1><img src="https://daysback.si/logo.png" alt="" id="logo"> DaysBack <span>HQ</span></h1>
+      <p class="sub">Everything for running DaysBack, in one place.</p>
+    </div>
+    <div class="tabs hide" id="tabs">
+      <button type="button" class="tab on" data-tab="home">Home</button>
+      <button type="button" class="tab" data-tab="tool">Send email</button>
+      <button type="button" class="tab" data-tab="stats">Website stats</button>
+      <button type="button" class="tab" id="lock" title="Lock">Lock</button>
+    </div>
+  </header>
 
   <div class="card" id="login">
     <label for="pass">Passcode</label>
@@ -76,62 +159,300 @@
     <ul class="steps" id="steps"></ul>
   </div>
 
-  <div class="tabs hide" id="tabs">
-    <button type="button" class="tab on" data-tab="tool">Send email</button>
-    <button type="button" class="tab" data-tab="stats">Website stats</button>
-  </div>
+  <!-- HOME -->
+  <section class="hide" id="home">
+    <p class="hello" id="hello">Hello</p>
+    <div class="clock" id="clock"></div>
+    <div class="search"><input id="q" placeholder="Search your links, or press Enter to search Google" autocomplete="off"></div>
 
-  <div class="card hide" id="stats">
-    <div class="stats-head"><strong>daysback.si</strong>
-      <select id="range"><option value="1">Today</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select>
-    </div>
-    <div class="kpis" id="kpis"></div>
-    <h3>Visitors per day</h3>
-    <div class="bars" id="bars"></div>
-    <div class="cols">
-      <div><h3>Top pages</h3><ul class="rows" id="pages"></ul></div>
-      <div><h3>Where they came from</h3><ul class="rows" id="sources"></ul></div>
-    </div>
-    <h3>Devices</h3><ul class="rows" id="devices"></ul>
-    <p class="hint">Cookie-free: no cookies, no IP addresses stored. A visitor is counted once per day. Bots are skipped.</p>
-  </div>
+    <div class="strip" id="strip"></div>
 
-  <div class="card hide" id="tool">
+    <div class="home-grid">
+      <div class="card" id="linksCard">
+        <h2 class="sec">Your links <button type="button" class="btn sm outline" id="editTiles">Edit</button></h2>
+        <div id="groups"></div>
+        <div class="addtile hide" id="addTile">
+          <input id="tName" placeholder="Name" maxlength="60">
+          <input id="tUrl" placeholder="https://…" maxlength="500">
+          <input id="tGroup" placeholder="Group" list="groupList" maxlength="40"><datalist id="groupList"></datalist>
+          <button type="button" class="btn sm" id="tAdd">Add</button>
+        </div>
+        <p class="hint hide" id="editHint">Click a tile's × to remove it. Changes save for the whole team. <a href="#" id="resetTiles">Reset to default</a></p>
+      </div>
+      <div class="card">
+        <h2 class="sec">Latest enquiries <a href="https://supabase.com/dashboard/project/ajevxwdgmpaakjkffvmf/editor" target="_blank" rel="noopener" style="font-size:12.5px">All →</a></h2>
+        <ul class="enq" id="enq"><li class="empty">Loading…</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEND EMAIL -->
+  <section class="hide narrow" id="tool" style="margin:0 auto">
+    <div class="card">
     <form id="form">
       <div class="row">
         <div><label for="box">Send from</label><select id="box" required></select></div>
         <div><label for="from">Sign as</label><select id="from" required><option value="Zayan">Zayan</option><option value="Mazher">Mazher</option></select></div>
       </div>
-
       <div class="row">
         <div><label for="to">To</label><input id="to" type="email" list="people" required autocomplete="off" placeholder="Type a name or email…"><datalist id="people"></datalist></div>
       </div>
-
       <label for="tpl">Start from a template</label>
       <select id="tpl"></select>
-
       <label for="subject">Subject</label>
       <input id="subject" maxlength="150" required>
-
       <label for="message">Message</label>
       <textarea id="message" required></textarea>
       <p class="hint">Suggestions come from every email in your three mailboxes (checked every time you open this page), website leads, and any contacts you import. <a href="#" id="importLink">Import contacts</a> (CSV or vCard exported from Hostinger Mail → Contacts)<input id="importFile" type="file" accept=".csv,.vcf,text/csv,text/vcard" class="hide"></p>
       <p class="hint">Sent with the gradient header and your DaysBack signature. The team and the sending mailbox get a copy (BCC), and replies come back to the mailbox you sent from.</p>
-
       <button class="btn" id="send">Send email</button>
-      <button type="button" class="btn ghost" id="lock">Lock</button>
       <p class="note hide" id="msg"></p>
     </form>
-  </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="hide" id="stats">
+    <div class="card">
+      <div class="stats-head">
+        <h2 class="sec" style="margin:0">daysback.si</h2>
+        <select id="range"><option value="1">Last 24 hours</option><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select>
+      </div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+    <div class="card">
+      <h3 id="chartTitle">Visitors per day</h3>
+      <div class="chart" id="chart"></div>
+      <details class="tbl"><summary>Show as table</summary><div id="chartTable"></div></details>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="card"><h3>From visit to enquiry</h3><div class="funnel" id="funnel"></div></div>
+      <div class="card"><h3>Where visitors came from</h3><ul class="blist" id="sources"></ul></div>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="card"><h3>Top pages <span class="hint" style="font-weight:400">· views · avg time</span></h3><ul class="blist" id="pages"></ul></div>
+      <div class="card"><h3>Where they landed first</h3><ul class="blist" id="entries"></ul></div>
+    </div>
+    <div class="grid3" style="margin-top:16px">
+      <div class="card"><h3>Locations</h3><ul class="blist" id="locations"></ul></div>
+      <div class="card"><h3>Devices</h3><ul class="blist" id="devices"></ul><h3 style="margin-top:14px">Systems</h3><ul class="blist" id="systems"></ul></div>
+      <div class="card"><h3>Browsers</h3><ul class="blist" id="browsers"></ul></div>
+    </div>
+    <p class="hint">Cookie-free: no cookies and no IP addresses stored. A visitor is counted once per day, location comes from their device's time zone, and bots are skipped. Compared with the previous period of the same length.</p>
+  </section>
+
   <p class="tiny">Team use only.</p>
 </div>
 
 <script>
 const API = 'https://ajevxwdgmpaakjkffvmf.supabase.co/functions/v1/daysback-compose';
 const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let pass = '';
 try { pass = sessionStorage.getItem('dbm-pass') || ''; } catch (e) {}
 
+async function call(payload) {
+  try {
+    const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pass, ...payload }) });
+    const out = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, out };
+  } catch (e) { return { ok: false, status: 0, out: { error: 'No connection.' } }; }
+}
+
+// ---------------------------------------------------------------- tabs
+const SECTIONS = ['home', 'tool', 'stats'];
+function showTab(name) {
+  document.querySelectorAll('.tab[data-tab]').forEach((x) => x.classList.toggle('on', x.dataset.tab === name));
+  SECTIONS.forEach((s) => $(s).classList.toggle('hide', s !== name));
+  if (name === 'stats') loadStats();
+  try { localStorage.setItem('hq-tab', name); } catch (e) {}
+}
+document.querySelectorAll('.tab[data-tab]').forEach((b) => { b.onclick = () => showTab(b.dataset.tab); });
+
+// ---------------------------------------------------------------- login + loading
+function showLogin(err) {
+  pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {}
+  $('loginErr').textContent = err || 'Something went wrong.'; $('loginErr').classList.remove('hide');
+  $('login').classList.remove('hide'); $('loading').classList.add('hide'); $('tabs').classList.add('hide');
+  SECTIONS.forEach((s) => $(s).classList.add('hide'));
+}
+function step(id, text, cls) {
+  let li = document.getElementById('st-' + id);
+  if (!li) { li = document.createElement('li'); li.id = 'st-' + id; $('steps').appendChild(li); }
+  li.textContent = text; li.className = cls || '';
+}
+
+async function openTool() {
+  const check = await call({ action: 'list' });
+  if (!check.ok) return showLogin(check.out.error);
+  try { sessionStorage.setItem('dbm-pass', pass); } catch (e) {}
+  $('login').classList.add('hide'); $('loading').classList.remove('hide'); $('steps').innerHTML = '';
+  const boxes = (check.out.mailboxes || []).filter((m) => m.ready);
+  step('leads', (check.out.enquiries || []).length + ' website leads loaded', 'done');
+  boxes.forEach((m) => step(m.email, 'Reading ' + m.email + '…'));
+  step('home', 'Loading your links and today\'s numbers…');
+
+  const homeP = Promise.all([call({ action: 'hq_get' }), call({ action: 'recent' }), call({ action: 'stats', days: 7 })]);
+  // First open reads every email; after that only new mail.
+  const totals = {};
+  for (let round = 0; round < 15; round++) {
+    const sync = await call({ action: 'sync' });
+    if (!sync.ok) { boxes.forEach((m) => step(m.email, m.email + ': couldn\'t read', 'fail')); break; }
+    let more = false;
+    (sync.out.results || []).forEach((x) => {
+      if (!boxes.some((m) => m.email === x.box)) return;
+      totals[x.box] = (totals[x.box] || 0) + x.count;
+      if (!x.ok) return step(x.box, x.box + ': couldn\'t read', 'fail');
+      if (!x.done) { more = true; return step(x.box, x.box + ': reading all emails… ' + totals[x.box] + ' contacts so far'); }
+      step(x.box, x.box + ': all emails checked, ' + totals[x.box] + ' new contacts', 'done');
+    });
+    if (!more) break;
+  }
+  const [hq, recent, week] = await homeP;
+  step('home', 'Links and today\'s numbers ready', 'done');
+  const r = await call({ action: 'list' });
+  if (!r.ok) return showLogin(r.out.error);
+  await new Promise((res) => setTimeout(res, 350));
+
+  $('loading').classList.add('hide'); $('tabs').classList.remove('hide');
+  loadPeople(r.out);
+  try { const f = localStorage.getItem('dbm-from'); if (f) $('from').value = f; } catch (e) {}
+  fillTemplates(); applyTemplate('blank');
+  renderHome(hq.out.tiles, recent.out.enquiries || [], week.ok ? week.out : null);
+  let tab = 'home'; try { tab = localStorage.getItem('hq-tab') || 'home'; } catch (e) {}
+  showTab(SECTIONS.includes(tab) ? tab : 'home');
+}
+$('enter').onclick = () => { pass = $('pass').value; $('loginErr').classList.add('hide'); openTool(); };
+$('pass').onkeydown = (e) => { if (e.key === 'Enter') $('enter').click(); };
+$('lock').onclick = () => { pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {} location.reload(); };
+
+// ---------------------------------------------------------------- home
+const DEFAULT_TILES = [
+  ['DaysBack', 'Website', 'https://daysback.si', 'daysback.si'],
+  ['DaysBack', 'Insights', 'https://daysback.si/insights/', 'Our guides'],
+  ['DaysBack', 'Signal Board', 'https://zayanandahmed-bit.github.io/leads-dashboard/', 'Leads & calls'],
+  ['DaysBack', 'Enquiries', 'https://supabase.com/dashboard/project/ajevxwdgmpaakjkffvmf/editor', 'Supabase table'],
+  ['Email & chat', 'Hostinger Mail', 'https://mail.hostinger.com', 'contact@ · mazher@ · zayan@'],
+  ['Email & chat', 'Gmail', 'https://mail.google.com', ''],
+  ['Email & chat', 'WhatsApp', 'https://web.whatsapp.com', ''],
+  ['Email & chat', 'Instagram', 'https://www.instagram.com/direct/inbox/', 'DMs'],
+  ['Email & chat', 'LinkedIn', 'https://www.linkedin.com', ''],
+  ['Email & chat', 'Telegram', 'https://web.telegram.org', ''],
+  ['Growth', 'Search Console', 'https://search.google.com/search-console?resource_id=sc-domain%3Adaysback.si', 'Google search'],
+  ['Growth', 'Business Profile', 'https://business.google.com', 'Google Maps'],
+  ['Build & run', 'Supabase', 'https://supabase.com/dashboard/project/ajevxwdgmpaakjkffvmf', 'Backend'],
+  ['Build & run', 'GitHub', 'https://github.com/zayanandahmed-bit', 'Code & sites'],
+  ['Build & run', 'Hostinger', 'https://hpanel.hostinger.com', 'Domain & email'],
+  ['Build & run', 'DNS records', 'https://hpanel.hostinger.com/domain/daysback.si/dns', 'daysback.si'],
+  ['Build & run', 'Twilio', 'https://console.twilio.com', 'Calls'],
+  ['Build & run', 'Claude Console', 'https://platform.claude.com', 'AI chat API'],
+  ['Build & run', 'Apify', 'https://console.apify.com/actors', 'Scrapers'],
+  ['Tools', 'Google Sheets', 'https://docs.google.com/spreadsheets', ''],
+  ['Tools', 'Claude', 'https://claude.ai', ''],
+].map(([group, name, url, note]) => ({ group, name, url, note }));
+
+let tiles = [];
+let editing = false;
+const host = (u) => { try { return new URL(u).hostname; } catch (e) { return ''; } };
+function tileHtml(t, i) {
+  const h = host(t.url);
+  const icon = h ? `<img src="https://www.google.com/s2/favicons?domain=${esc(h)}&sz=64" alt="" loading="lazy" onerror="this.outerHTML='<span class=letter>${esc((t.name[0] || '?').toUpperCase())}</span>'">` : `<span class="letter">${esc((t.name[0] || '?').toUpperCase())}</span>`;
+  return `<a class="tile" href="${esc(t.url)}" target="_blank" rel="noopener" data-i="${i}" data-s="${esc((t.name + ' ' + t.note + ' ' + t.group + ' ' + h).toLowerCase())}">${icon}<span><b>${esc(t.name)}</b>${t.note ? `<small>${esc(t.note)}</small>` : ''}</span><button type="button" class="x" data-del="${i}" aria-label="Remove">×</button></a>`;
+}
+function renderTiles() {
+  const groups = [];
+  tiles.forEach((t, i) => {
+    let g = groups.find((x) => x.name === (t.group || 'Other'));
+    if (!g) { g = { name: t.group || 'Other', items: [] }; groups.push(g); }
+    g.items.push(tileHtml(t, i));
+  });
+  $('groups').innerHTML = groups.map((g) => `<div class="group"><h4>${esc(g.name)}</h4><div class="tiles">${g.items.join('')}</div></div>`).join('');
+  $('groupList').innerHTML = groups.map((g) => `<option value="${esc(g.name)}">`).join('');
+  filterTiles();
+}
+function filterTiles() {
+  const q = $('q').value.trim().toLowerCase();
+  document.querySelectorAll('#groups .tile').forEach((el) => { el.classList.toggle('hide', q && !el.dataset.s.includes(q)); });
+  document.querySelectorAll('#groups .group').forEach((g) => { g.classList.toggle('hide', !g.querySelector('.tile:not(.hide)')); });
+}
+async function saveTiles() {
+  const r = await call({ action: 'hq_set', tiles });
+  if (!r.ok) alert(r.out.error || 'Could not save.');
+}
+$('q').addEventListener('input', filterTiles);
+$('q').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const first = document.querySelector('#groups .tile:not(.hide)');
+  const q = $('q').value.trim();
+  if (!q) return;
+  if (first && !editing) window.open(first.href, '_blank', 'noopener');
+  else window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank', 'noopener');
+});
+$('editTiles').onclick = () => {
+  editing = !editing;
+  $('linksCard').classList.toggle('editing', editing);
+  $('addTile').classList.toggle('hide', !editing);
+  $('editHint').classList.toggle('hide', !editing);
+  $('editTiles').textContent = editing ? 'Done' : 'Edit';
+};
+$('groups').addEventListener('click', (e) => {
+  const del = e.target.closest('[data-del]');
+  if (editing) e.preventDefault();
+  if (!del) return;
+  e.preventDefault(); e.stopPropagation();
+  tiles.splice(Number(del.dataset.del), 1); renderTiles(); saveTiles();
+});
+$('tAdd').onclick = () => {
+  let url = $('tUrl').value.trim();
+  if (url && !/^https?:\/\//.test(url)) url = 'https://' + url;
+  const name = $('tName').value.trim();
+  if (!name || !host(url)) { alert('Add a name and a web address.'); return; }
+  tiles.push({ name, url, group: $('tGroup').value.trim() || 'Other', note: '' });
+  $('tName').value = ''; $('tUrl').value = '';
+  renderTiles(); saveTiles();
+};
+$('resetTiles').onclick = (e) => { e.preventDefault(); if (confirm('Reset links to the default set?')) { tiles = DEFAULT_TILES.map((t) => ({ ...t })); renderTiles(); saveTiles(); } };
+
+function ago(iso) {
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + ' min ago';
+  if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+  return Math.floor(s / 86400) + ' d ago';
+}
+function tick() {
+  const now = new Date();
+  const h = now.getHours();
+  let me = 'Zayan'; try { me = localStorage.getItem('dbm-from') || 'Zayan'; } catch (e) {}
+  $('hello').textContent = (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', ' + me;
+  $('clock').textContent = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' +
+    now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+function renderHome(saved, enquiries, week) {
+  tiles = Array.isArray(saved) && saved.length ? saved : DEFAULT_TILES.map((t) => ({ ...t }));
+  renderTiles();
+  tick(); setInterval(tick, 30000);
+  const w = week || { live: 0, today_visitors: 0, cur: { visitors: 0, enquiries: 0 } };
+  $('strip').innerHTML = [
+    [`<span class="live-dot"></span>${w.live}`, 'On the site now'],
+    [w.today_visitors, 'Visitors today'],
+    [w.cur.visitors, 'Visitors, last 7 days'],
+    [w.cur.enquiries, 'Enquiries, last 7 days'],
+  ].map(([v, l]) => `<div class="kpi"><span class="lbl">${l}</span><span class="val">${v}</span></div>`).join('');
+  $('enq').innerHTML = enquiries.length ? enquiries.slice(0, 6).map((q) => `<li>
+      <div class="who">${esc(q.name)}${q.company ? ` <span class="meta">· ${esc(q.company)}</span>` : ''}</div>
+      <div class="meta">${esc(q.interest || 'General enquiry')} · ${ago(q.created_at)}</div>
+      <div class="acts"><a href="${esc(q.reply)}" target="_blank" rel="noopener">Reply in template</a><button type="button" data-mail="${esc(q.email)}" data-name="${esc(q.name)}">Email</button></div>
+    </li>`).join('') : '<li class="empty">No enquiries yet.</li>';
+}
+$('enq').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-mail]'); if (!b) return;
+  showTab('tool');
+  $('to').value = b.dataset.mail; $('to').dataset.name = b.dataset.name;
+  $('tpl').value = 'first'; applyTemplate('first');
+});
+
+// ---------------------------------------------------------------- send email
 const TEMPLATES = {
   blank: { label: 'Blank', subject: '', body: 'Hi {first},\n\n' },
   first: {
@@ -155,7 +476,7 @@ const TEMPLATES = {
     body: "Hi {first},\n\nThank you, we really appreciate it.\n\nHere is what happens next:\n\n1. [Step one]\n2. [Step two]\n3. [Step three]\n\nI'll keep you updated along the way."
   },
 };
-
+let touched = false;
 const firstName = () => (($('to').dataset.name || '').split(' ')[0]) || 'there';
 function applyTemplate(key) {
   touched = false;
@@ -167,62 +488,6 @@ function fillTemplates() {
   $('tpl').innerHTML = Object.entries(TEMPLATES).map(([k, t]) => `<option value="${k}">${t.label}</option>`).join('');
   $('tpl').onchange = () => applyTemplate($('tpl').value);
 }
-
-async function call(payload) {
-  const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pass, ...payload }) });
-  const out = await res.json().catch(() => ({}));
-  return { ok: res.ok, status: res.status, out };
-}
-
-function showLogin(err) {
-  pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {}
-  $('loginErr').textContent = err || 'Something went wrong.'; $('loginErr').classList.remove('hide');
-  $('login').classList.remove('hide'); $('loading').classList.add('hide'); $('tool').classList.add('hide'); $('tabs').classList.add('hide'); $('stats').classList.add('hide');
-}
-function step(id, text, cls) {
-  let li = document.getElementById('st-' + id);
-  if (!li) { li = document.createElement('li'); li.id = 'st-' + id; $('steps').appendChild(li); }
-  li.textContent = text; li.className = cls || '';
-}
-
-async function openTool() {
-  // Check the passcode first (fast), then show the loading phase while every
-  // mailbox is scanned for contacts.
-  const check = await call({ action: 'list' });
-  if (!check.ok) return showLogin(check.out.error);
-  try { sessionStorage.setItem('dbm-pass', pass); } catch (e) {}
-  $('login').classList.add('hide'); $('loading').classList.remove('hide'); $('steps').innerHTML = '';
-  const boxes = (check.out.mailboxes || []).filter((m) => m.ready);
-  boxes.forEach((m) => step(m.email, 'Reading ' + m.email + '…'));
-  step('leads', (check.out.enquiries || []).length + ' website leads loaded', 'done');
-  // First open reads every email; after that only new mail. Big mailboxes may
-  // need a few rounds, so keep going until every box reports done.
-  const totals = {};
-  for (let round = 0; round < 15; round++) {
-    const sync = await call({ action: 'sync' });
-    if (!sync.ok) { boxes.forEach((m) => step(m.email, m.email + ': couldn\'t read', 'fail')); break; }
-    let more = false;
-    (sync.out.results || []).forEach((x) => {
-      if (!boxes.some((m) => m.email === x.box)) return;
-      totals[x.box] = (totals[x.box] || 0) + x.count;
-      if (!x.ok) return step(x.box, x.box + ': couldn\'t read', 'fail');
-      if (!x.done) { more = true; return step(x.box, x.box + ': reading all emails… ' + totals[x.box] + ' contacts so far'); }
-      step(x.box, x.box + ': all emails checked, ' + totals[x.box] + ' new contacts', 'done');
-    });
-    if (!more) break;
-  }
-  const r = await call({ action: 'list' });
-  if (!r.ok) return showLogin(r.out.error);
-  await new Promise((res) => setTimeout(res, 500));
-  $('loading').classList.add('hide'); $('tool').classList.remove('hide'); $('tabs').classList.remove('hide');
-  loadPeople(r.out);
-  try { const f = localStorage.getItem('dbm-from'); if (f) $('from').value = f; } catch (e) {}
-  fillTemplates(); applyTemplate('blank');
-}
-
-$('enter').onclick = () => { pass = $('pass').value; $('loginErr').classList.add('hide'); openTool(); };
-$('pass').onkeydown = (e) => { if (e.key === 'Enter') $('enter').click(); };
-$('lock').onclick = () => { pass = ''; try { sessionStorage.removeItem('dbm-pass'); } catch (e) {} location.reload(); };
 let people = {};
 function loadBoxes(list) {
   const keep = $('box').value || (() => { try { return localStorage.getItem('dbm-box'); } catch (e) { return ''; } })();
@@ -236,11 +501,8 @@ function loadPeople(out) {
   (out.contacts || []).forEach((c) => { people[c.email.toLowerCase()] = c.name || ''; });
   (out.enquiries || []).forEach((c) => { people[c.email.toLowerCase()] = c.name || people[c.email.toLowerCase()] || ''; });
   $('people').innerHTML = Object.entries(people).sort((a, b) => (a[1] || a[0]).localeCompare(b[1] || b[0]))
-    .map(([em, nm]) => `<option value="${em.replace(/"/g, '')}" label="${nm.replace(/"/g, '').replace(/</g, '')}"></option>`).join('');
+    .map(([em, nm]) => `<option value="${esc(em)}" label="${esc(nm)}"></option>`).join('');
 }
-// Picking (or typing) a known address puts their first name in the greeting,
-// as long as you haven't started editing the message yourself.
-let touched = false;
 $('message').addEventListener('input', () => { touched = true; });
 $('to').addEventListener('input', () => {
   const nm = people[$('to').value.trim().toLowerCase()] || '';
@@ -248,8 +510,6 @@ $('to').addEventListener('input', () => {
   $('to').dataset.name = nm;
   if (nm && !touched) { if ($('tpl').value === 'blank') $('tpl').value = 'first'; applyTemplate($('tpl').value); }
 });
-
-// Contacts import: vCard (FN + EMAIL) or CSV (any columns, finds the emails).
 function parseContacts(text, name) {
   const out = [];
   if (/\.vcf$/i.test(name) || /BEGIN:VCARD/i.test(text)) {
@@ -272,14 +532,12 @@ $('importLink').onclick = (e) => { e.preventDefault(); $('importFile').click(); 
 $('importFile').onchange = async () => {
   const f = $('importFile').files[0]; if (!f) return;
   const msg = $('msg'); msg.className = 'note hide';
-  const contacts = parseContacts(await f.text(), f.name);
-  const r = await call({ action: 'import', contacts });
+  const r = await call({ action: 'import', contacts: parseContacts(await f.text(), f.name) });
   msg.textContent = r.ok ? 'Imported ' + r.out.count + ' contacts.' : (r.out.error || 'Import failed.');
   msg.className = 'note ' + (r.ok ? 'ok' : 'err');
   $('importFile').value = '';
   if (r.ok) { const l = await call({ action: 'list' }); if (l.ok) loadPeople(l.out); }
 };
-
 $('form').onsubmit = async (e) => {
   e.preventDefault();
   const btn = $('send'), msg = $('msg');
@@ -294,41 +552,150 @@ $('form').onsubmit = async (e) => {
   } else { msg.textContent = r.out.error || 'Could not send.'; msg.className = 'note err'; }
 };
 
-// ---------- Website stats ----------
-const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const list = (el, rows, label, val) => {
-  $(el).innerHTML = rows.length ? rows.map((r) => `<li><span>${esc(label(r))}</span><b>${r[val]}</b></li>`).join('') : '<li class="empty">Nothing yet</li>';
+// ---------------------------------------------------------------- website stats
+const TZ_COUNTRY = {
+  'Europe/London': 'United Kingdom', 'Europe/Belfast': 'United Kingdom', 'Europe/Dublin': 'Ireland',
+  'Asia/Karachi': 'Pakistan', 'Asia/Dubai': 'United Arab Emirates', 'Asia/Muscat': 'Oman', 'Asia/Riyadh': 'Saudi Arabia',
+  'Asia/Qatar': 'Qatar', 'Asia/Kolkata': 'India', 'Asia/Calcutta': 'India', 'Asia/Dhaka': 'Bangladesh', 'Asia/Singapore': 'Singapore',
+  'Asia/Shanghai': 'China', 'Asia/Hong_Kong': 'Hong Kong', 'Asia/Tokyo': 'Japan', 'Asia/Manila': 'Philippines', 'Asia/Jakarta': 'Indonesia',
+  'Asia/Kuala_Lumpur': 'Malaysia', 'Asia/Istanbul': 'Turkey', 'Europe/Istanbul': 'Turkey', 'Europe/Paris': 'France', 'Europe/Berlin': 'Germany',
+  'Europe/Madrid': 'Spain', 'Europe/Rome': 'Italy', 'Europe/Amsterdam': 'Netherlands', 'Europe/Brussels': 'Belgium', 'Europe/Zurich': 'Switzerland',
+  'Europe/Stockholm': 'Sweden', 'Europe/Oslo': 'Norway', 'Europe/Copenhagen': 'Denmark', 'Europe/Warsaw': 'Poland', 'Europe/Lisbon': 'Portugal',
+  'Europe/Ljubljana': 'Slovenia', 'Europe/Athens': 'Greece', 'Europe/Kyiv': 'Ukraine', 'Europe/Moscow': 'Russia', 'Africa/Cairo': 'Egypt',
+  'Africa/Lagos': 'Nigeria', 'Africa/Johannesburg': 'South Africa', 'Africa/Nairobi': 'Kenya', 'Australia/Sydney': 'Australia',
+  'Australia/Melbourne': 'Australia', 'Pacific/Auckland': 'New Zealand', 'America/Toronto': 'Canada', 'America/Vancouver': 'Canada',
+  'America/Sao_Paulo': 'Brazil', 'America/Mexico_City': 'Mexico',
 };
+const place = (tz) => {
+  if (!tz || tz === 'Unknown') return 'Unknown';
+  if (TZ_COUNTRY[tz]) return TZ_COUNTRY[tz];
+  if (/^America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Detroit|Indiana|Kentucky|Boise)|^Pacific\/Honolulu/.test(tz)) return 'United States';
+  return tz.split('/').pop().replace(/_/g, ' ');
+};
+const SOURCE_NAMES = [[/google\./, 'Google'], [/bing\./, 'Bing'], [/duckduckgo/, 'DuckDuckGo'], [/instagram/, 'Instagram'],
+  [/facebook|fb\.com/, 'Facebook'], [/linkedin|lnkd\.in/, 'LinkedIn'], [/^t\.co$|twitter|x\.com/, 'X (Twitter)'], [/whatsapp|wa\.me/, 'WhatsApp'],
+  [/chatgpt|openai/, 'ChatGPT'], [/perplexity/, 'Perplexity'], [/claude\.ai/, 'Claude'], [/youtube/, 'YouTube'], [/tiktok/, 'TikTok'], [/github\.io|github\.com/, 'GitHub']];
+const source = (s) => { for (const [re, n] of SOURCE_NAMES) if (re.test(s)) return n; return s; };
+const PAGE_NAMES = { '/': 'Home (3D)', '/services': 'Services', '/reviews': 'Reviews', '/about': 'About', '/contact': 'Contact', '/thanks': 'Thank-you (enquiry sent)', '/insights': 'Insights' };
+const page = (p) => PAGE_NAMES[p] || (p.startsWith('/insights/') ? 'Guide: ' + p.slice(10).replace(/-/g, ' ') : p);
+const dur = (s) => { s = Math.round(s || 0); return s < 60 ? s + 's' : Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's'; };
+const merge = (rows, keyFn, val) => {
+  const m = new Map();
+  rows.forEach((r) => { const k = keyFn(r); m.set(k, (m.get(k) || 0) + Number(r[val] || 0)); });
+  return [...m].map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v);
+};
+
+function delta(cur, prev, lowerIsBetter) {
+  if (!prev && !cur) return '<span class="delta"><i class="flat">–</i>no change</span>';
+  if (!prev) return '<span class="delta"><i class="up">▲</i>new vs previous period</span>';
+  const pct = Math.round(((cur - prev) / prev) * 100);
+  if (pct === 0) return '<span class="delta"><i class="flat">–</i>same as previous period</span>';
+  const good = lowerIsBetter ? pct < 0 : pct > 0;
+  return `<span class="delta"><i class="${good ? 'up' : 'down'}">${pct > 0 ? '▲' : '▼'}</i>${Math.abs(pct)}% vs previous period</span>`;
+}
+function blist(el, rows, fmt) {
+  const max = Math.max(1, ...rows.map((r) => r.v));
+  $(el).innerHTML = rows.length ? rows.slice(0, 10).map((r) => `<li><div class="fill" style="width:${(r.v / max) * 100}%"></div><span>${esc(r.k)}${r.extra ? `<em>${esc(r.extra)}</em>` : ''}</span><b>${fmt ? fmt(r.v) : r.v}</b></li>`).join('') : '<li class="empty">Nothing yet</li>';
+}
+
+function drawChart(points, xLabel) {
+  // Single series column chart: one hue, 4px rounded tops, square at baseline, hover tooltip.
+  const W = $('chart').clientWidth || 800, H = 220, padL = 30, padB = 22, padT = 10;
+  const max = Math.max(1, ...points.map((p) => p.visitors));
+  const nice = max <= 4 ? 4 : max <= 10 ? 10 : Math.ceil(max / 5) * 5;
+  const cw = (W - padL) / points.length;
+  const bw = Math.max(2, Math.min(24, cw - 2));
+  const y = (v) => padT + (H - padT - padB) * (1 - v / nice);
+  const ticks = [0, nice / 2, nice];
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Visitors chart">`;
+  svg += `<g class="axis">` + ticks.map((t) => `<line x1="${padL}" x2="${W}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1"/><text x="${padL - 6}" y="${y(t) + 4}" text-anchor="end">${t}</text>`).join('');
+  const every = Math.ceil(points.length / 6);
+  points.forEach((p, i) => { if (i % every === 0 || i === points.length - 1) svg += `<text x="${padL + i * cw + cw / 2}" y="${H - 4}" text-anchor="middle">${esc(p.label)}</text>`; });
+  svg += `</g>`;
+  points.forEach((p, i) => {
+    const x = padL + i * cw + (cw - bw) / 2, top = y(p.visitors), h = Math.max(0, y(0) - top), r = Math.min(4, bw / 2, h);
+    if (h > 0) svg += `<path d="M${x},${y(0)} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${y(0)} Z" fill="var(--series)"/>`;
+    svg += `<rect x="${padL + i * cw}" y="${padT}" width="${cw}" height="${H - padT - padB}" fill="transparent" data-i="${i}"/>`;
+  });
+  svg += `</svg><div class="tip hide" id="tip"></div>`;
+  $('chart').innerHTML = svg;
+  const tip = $('tip');
+  $('chart').querySelectorAll('rect[data-i]').forEach((rc) => {
+    const show = () => {
+      const p = points[Number(rc.dataset.i)];
+      tip.textContent = '';
+      const a = document.createElement('div'); a.innerHTML = '<span class="k"></span>';
+      const s = document.createElement('strong'); s.textContent = p.visitors; a.appendChild(s); a.appendChild(document.createTextNode(' visitors'));
+      const b = document.createElement('div'); b.textContent = p.views + ' page views';
+      const c = document.createElement('div'); c.textContent = p.full; c.style.opacity = '.75';
+      tip.append(a, b, c);
+      const bx = rc.getBBox(), sc = $('chart').clientWidth / W;
+      tip.style.left = (bx.x + bx.width / 2) * sc + 'px'; tip.style.top = y(p.visitors) * sc + 'px';
+      tip.classList.remove('hide');
+    };
+    rc.addEventListener('pointerenter', show); rc.addEventListener('pointermove', show);
+    rc.addEventListener('pointerleave', () => tip.classList.add('hide'));
+  });
+  $('chartTable').innerHTML = `<table><tr><th>${xLabel}</th><th>Visitors</th><th>Page views</th></tr>` +
+    points.map((p) => `<tr><td>${esc(p.full)}</td><td>${p.visitors}</td><td>${p.views}</td></tr>`).join('') + '</table>';
+}
+
+let lastStats = null;
 async function loadStats() {
   const days = Number($('range').value);
   $('kpis').innerHTML = '<p class="empty">Loading…</p>';
   const r = await call({ action: 'stats', days });
   if (!r.ok) { $('kpis').innerHTML = '<p class="note err">' + esc(r.out.error || 'Could not load stats.') + '</p>'; return; }
-  const s = r.out;
-  const k = [[s.today_visitors, 'Visitors today'], [s.visitors, 'Visitors'], [s.views, 'Page views'], [s.enquiries, 'Enquiries']];
-  $('kpis').innerHTML = k.map(([n, l]) => `<div class="kpi"><b>${n}</b><span>${l}</span></div>`).join('');
-  // one bar per day in the range, including empty days
-  const map = Object.fromEntries((s.by_day || []).map((d) => [d.day, d.visitors]));
-  const out = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 864e5).toISOString().slice(0, 10);
-    out.push([d, map[d] || 0]);
+  const s = lastStats = r.out, c = s.cur, p = s.prev;
+  const conv = (o) => (o.visitors ? Math.round((o.enquiries / o.visitors) * 1000) / 10 : 0);
+  const k = [
+    [`<span class="live-dot"></span>${s.live}`, 'On the site now', '<span class="delta">last 5 minutes</span>'],
+    [c.visitors, 'Visitors', delta(c.visitors, p.visitors)],
+    [c.views, 'Page views', delta(c.views, p.views)],
+    [c.enquiries, 'Enquiries', delta(c.enquiries, p.enquiries)],
+    [conv(c) + '%', 'Visitors who enquired', delta(conv(c), conv(p))],
+    [c.pages_per_visit, 'Pages per visit', delta(Number(c.pages_per_visit), Number(p.pages_per_visit))],
+    [dur(c.avg_seconds), 'Avg time on a page', delta(c.avg_seconds, p.avg_seconds)],
+    [c.bounce + '%', 'Left after one page', delta(c.bounce, p.bounce, true)],
+  ];
+  $('kpis').innerHTML = k.map(([v, l, d]) => `<div class="kpi"><span class="lbl">${l}</span><span class="val">${v}</span>${d}</div>`).join('');
+
+  // chart: hourly for 24h, daily otherwise (empty buckets included)
+  let points;
+  if (days === 1) {
+    $('chartTitle').textContent = 'Visitors per hour (UK time)';
+    const m = Object.fromEntries((s.by_hour || []).map((d) => [d.hour, d]));
+    const nowH = Number(new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }));
+    points = Array.from({ length: 24 }, (_, i) => {
+      const hr = (nowH + 1 + i) % 24, d = m[hr] || {};
+      return { label: String(hr).padStart(2, '0'), full: String(hr).padStart(2, '0') + ':00', visitors: d.visitors || 0, views: d.views || 0 };
+    });
+    drawChart(points, 'Hour');
+  } else {
+    $('chartTitle').textContent = 'Visitors per day';
+    const m = Object.fromEntries((s.by_day || []).map((d) => [d.day, d]));
+    points = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const dt = new Date(Date.now() - i * 864e5), key = dt.toISOString().slice(0, 10), d = m[key] || {};
+      points.push({ label: dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), full: dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }), visitors: d.visitors || 0, views: d.views || 0 });
+    }
+    drawChart(points, 'Day');
   }
-  const max = Math.max(1, ...out.map((o) => o[1]));
-  $('bars').innerHTML = out.map(([d, n]) => `<div style="height:${Math.max(2, (n / max) * 100)}%" data-t="${d}: ${n}"></div>`).join('');
-  list('pages', s.pages || [], (x) => x.path, 'views');
-  list('sources', s.sources || [], (x) => x.source, 'visitors');
-  list('devices', s.devices || [], (x) => x.device, 'visitors');
+
+  // funnel
+  const f = s.funnel || [], top = Math.max(1, f[0]?.n || 0);
+  $('funnel').innerHTML = f.map((st) => `<div class="step"><div class="t"><span>${esc(st.step)}</span><b>${st.n}<span class="hint" style="font-weight:400"> · ${Math.round((st.n / top) * 100)}%</span></b></div><div class="track"><div style="width:${Math.min(100, (st.n / top) * 100)}%"></div></div></div>`).join('');
+
+  blist('sources', merge(s.sources || [], (x) => source(x.source), 'visitors'));
+  blist('pages', (s.pages || []).map((x) => ({ k: page(x.path), v: x.views, extra: x.avg_seconds ? dur(x.avg_seconds) : '' })));
+  blist('entries', merge(s.entries || [], (x) => page(x.path), 'visitors'));
+  blist('locations', merge(s.locations || [], (x) => place(x.tz), 'visitors'));
+  blist('devices', merge(s.devices || [], (x) => x.name.charAt(0).toUpperCase() + x.name.slice(1), 'visitors'));
+  blist('systems', merge(s.systems || [], (x) => x.name, 'visitors'));
+  blist('browsers', merge(s.browsers || [], (x) => x.name, 'visitors'));
 }
 $('range').onchange = loadStats;
-document.querySelectorAll('.tab').forEach((b) => {
-  b.onclick = () => {
-    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b));
-    $('tool').classList.toggle('hide', b.dataset.tab !== 'tool');
-    $('stats').classList.toggle('hide', b.dataset.tab !== 'stats');
-    if (b.dataset.tab === 'stats') loadStats();
-  };
-});
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (lastStats && !$('stats').classList.contains('hide')) loadStats(); }, 300); });
 
 if (pass) openTool();
 </script>

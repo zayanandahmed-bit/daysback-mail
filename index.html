@@ -929,7 +929,7 @@ async function igDetail() {
     <span class="hint">Day ${p.day} · ${igDay(p.date)} · ${esc(p.time)} UK${p.date === ukDate() ? ' · <b style="color:var(--accent)">today</b>' : ''}</span>
     <h2 class="ig-title">${esc(p.title)}</h2>
     <span class="hint">${reel ? 'Reel · ' + esc(p.fmt || '') + ' · 1080×1920 · 60 fps' : 'Carousel · ' + (p.slides || files.length) + ' slides · 4:5'} · ${esc(p.pillar || '')}</span>
-    ${st === 'check-rates' ? '<div class="warn">Waiting on the partner rates. Confirm 15% of the first project + 10% a month for 12 months (or set new ones) before this goes out.</div>' : ''}
+    ${st === 'check-rates' ? '<div class="warn">Waiting on a sign-off before this goes out.</div>' : ''}
     <div class="ig-status">${['planned', 'ready', 'scheduled', 'posted', 'skip'].map((k) => `<button type="button" data-st="${k}" class="${k === st ? 'on' : ''}">${IG_STATUS[k]}</button>`).join('')}</div>
     <div class="ig-media" id="igMedia"><p class="empty">${files.length ? 'Loading files…' : 'Files not uploaded yet.'}</p></div>
     <div class="ig-acts">
